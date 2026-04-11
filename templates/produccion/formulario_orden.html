@@ -1,0 +1,40 @@
+{% extends 'base/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+    {% if form.instance.pk %}
+        Editar Orden de Producción #{{ form.instance.id }}
+    {% else %}
+        Nueva Orden de Producción
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>
+        {% if form.instance.pk %}
+            <i class="bi bi-pencil-square"></i> Editar Orden de Producción #{{ form.instance.id }}
+        {% else %}
+            <i class="bi bi-plus-circle"></i> Nueva Orden de Producción
+        {% endif %}
+    </h1>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="post" novalidate>
+            {% csrf_token %}
+            {{ form|crispy }}
+            
+            <div class="action-buttons mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save"></i> Guardar
+                </button>
+                <a href="{% url 'produccion:lista_ordenes' %}" class="btn btn-secondary">
+                    <i class="bi bi-x-circle"></i> Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

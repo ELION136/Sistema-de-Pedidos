@@ -1,0 +1,151 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{{ cliente.nombre }} - Cliente{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-start">
+        <div>
+            <h1><i class="bi bi-building me-3"></i>{{ cliente.nombre }}</h1>
+            <p class="text-muted">{{ cliente.get_tipo_display }}</p>
+        </div>
+        <div>
+            <a href="{% url 'clientes:editar' cliente.pk %}" class="btn btn-primary">
+                <i class="bi bi-pencil me-2"></i>Editar
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Información Principal -->
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Información del Cliente</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong><i class="bi bi-person me-2"></i>Contacto:</strong><br>
+                        {{ cliente.contacto_nombre|default:"No especificado" }}</p>
+                        
+                        <p><strong><i class="bi bi-briefcase me-2"></i>Cargo:</strong><br>
+                        {{ cliente.contacto_cargo|default:"No especificado" }}</p>
+                        
+                        <p><strong><i class="bi bi-telephone me-2"></i>Teléfono:</strong><br>
+                        {{ cliente.telefono|default:"No especificado" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong><i class="bi bi-envelope me-2"></i>Email:</strong><br>
+                        {{ cliente.email|default:"No especificado" }}</p>
+                        
+                        <p><strong><i class="bi bi-geo-alt me-2"></i>Dirección:</strong><br>
+                        {{ cliente.direccion|default:"No especificada" }}</p>
+                        
+                        <p><strong><i class="bi bi-building me-2"></i>Ciudad:</strong><br>
+                        {{ cliente.ciudad|default:"No especificada" }}</p>
+                    </div>
+                </div>
+                
+                {% if cliente.notas %}
+                <hr>
+                <p><strong><i class="bi bi-sticky me-2"></i>Notas:</strong></p>
+                <p class="text-muted">{{ cliente.notas|linebreaks }}</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Últimos Pedidos -->
+        <div class="card">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-cart3 me-2"></i>Últimos Pedidos</h5>
+                <a href="{% url 'pedidos:crear' %}?cliente={{ cliente.pk }}" class="btn btn-sm btn-primary">
+                    <i class="bi bi-plus-circle me-1"></i>Nuevo Pedido
+                </a>
+            </div>
+            <div class="card-body p-0">
+                {% if pedidos %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Gestión</th>
+                                    <th>Estado</th>
+                                    <th>Total Prendas</th>
+                                    <th>Fecha</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for pedido in pedidos %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'pedidos:detalle' pedido.pk %}">
+                                            {{ pedido.codigo }}
+                                        </a>
+                                    </td>
+                                    <td>{{ pedido.gestion }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if pedido.estado == 'pendiente' %}warning{% elif pedido.estado == 'en_proceso' %}info{% elif pedido.estado == 'completado' %}success{% else %}secondary{% endif %}">
+                                            {{ pedido.get_estado_display }}
+                                        </span>
+                                    </td>
+                                    <td>{{ pedido.get_total_prendas }}</td>
+                                    <td>{{ pedido.creado_en|date:"d/m/Y" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <i class="bi bi-cart"></i>
+                        <p>No hay pedidos registrados</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Estadísticas -->
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>Estadísticas</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="text-muted">Total de Pedidos</span>
+                    <span class="badge bg-primary fs-6">{{ total_pedidos }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-muted">Pedidos Activos</span>
+                    <span class="badge bg-success fs-6">{{ pedidos_activos }}</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Información</h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-2"><strong>Registrado:</strong><br>
+                <span class="text-muted">{{ cliente.creado_en|date:"d/m/Y H:i" }}</span></p>
+                
+                <p class="mb-2"><strong>Última modificación:</strong><br>
+                <span class="text-muted">{{ cliente.modificado_en|date:"d/m/Y H:i" }}</span></p>
+                
+                <p class="mb-0"><strong>Estado:</strong><br>
+                {% if cliente.activo %}
+                    <span class="badge bg-success">Activo</span>
+                {% else %}
+                    <span class="badge bg-secondary">Inactivo</span>
+                {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,199 @@
+[
+  {
+    "model": "clientes.cliente",
+    "pk": 1,
+    "fields": {
+      "nombre": "Colegio San Agustín",
+      "tipo": "colegio",
+      "contacto_nombre": "María González",
+      "contacto_cargo": "Directora Administrativa",
+      "telefono": "2-2345678",
+      "email": "admin@colegiosanagustin.edu",
+      "direccion": "Calle 15 de Calacoto #123",
+      "ciudad": "La Paz",
+      "nit": "123456789",
+      "notas": "Cliente frecuente, pago puntual",
+      "activo": true,
+      "creado_en": "2024-01-15T10:00:00Z",
+      "modificado_en": "2024-01-15T10:00:00Z"
+    }
+  },
+  {
+    "model": "clientes.cliente",
+    "pk": 2,
+    "fields": {
+      "nombre": "Unidad Educativa Alemana",
+      "tipo": "colegio",
+      "contacto_nombre": "Carlos Rodríguez",
+      "contacto_cargo": "Coordinador Deportivo",
+      "telefono": "2-3456789",
+      "email": "deportes@alemana.edu.bo",
+      "direccion": "Av. Arce #456",
+      "ciudad": "La Paz",
+      "nit": "987654321",
+      "notas": "Pedidos grandes al inicio de gestión",
+      "activo": true,
+      "creado_en": "2024-01-16T11:30:00Z",
+      "modificado_en": "2024-01-16T11:30:00Z"
+    }
+  },
+  {
+    "model": "clientes.cliente",
+    "pk": 3,
+    "fields": {
+      "nombre": "Colegio Franco Boliviano",
+      "tipo": "colegio",
+      "contacto_nombre": "Ana Martínez",
+      "contacto_cargo": "Administradora",
+      "telefono": "2-4567890",
+      "email": "admin@francoboliviano.edu",
+      "direccion": "Calle 21 de Calacoto #789",
+      "ciudad": "La Paz",
+      "nit": "456789123",
+      "notas": "",
+      "activo": true,
+      "creado_en": "2024-01-17T09:15:00Z",
+      "modificado_en": "2024-01-17T09:15:00Z"
+    }
+  },
+  {
+    "model": "pedidos.pedido",
+    "pk": 1,
+    "fields": {
+      "codigo": "PED-2024-00001",
+      "cliente": 1,
+      "gestion": 2024,
+      "tipo_pedido": "completo",
+      "estado": "en_proceso",
+      "fecha_entrega": "2024-03-15",
+      "notas": "Entregar en la administración",
+      "creado_en": "2024-01-20T14:00:00Z",
+      "modificado_en": "2024-01-20T14:00:00Z"
+    }
+  },
+  {
+    "model": "pedidos.pedido",
+    "pk": 2,
+    "fields": {
+      "codigo": "PED-2024-00002",
+      "cliente": 2,
+      "gestion": 2024,
+      "tipo_pedido": "parcial",
+      "estado": "pendiente",
+      "fecha_entrega": "2024-04-01",
+      "notas": "Solo busos y poleras",
+      "creado_en": "2024-01-22T10:30:00Z",
+      "modificado_en": "2024-01-22T10:30:00Z"
+    }
+  },
+  {
+    "model": "pedidos.itempedido",
+    "pk": 1,
+    "fields": {
+      "pedido": 1,
+      "tipo_prenda": "chamarra",
+      "genero": "varon",
+      "talla": "M",
+      "cantidad": 50,
+      "es_parte_de_conjunto": false,
+      "conjunto_padre_id": null,
+      "notas": "",
+      "creado_en": "2024-01-20T14:05:00Z",
+      "modificado_en": "2024-01-20T14:05:00Z"
+    }
+  },
+  {
+    "model": "pedidos.itempedido",
+    "pk": 2,
+    "fields": {
+      "pedido": 1,
+      "tipo_prenda": "buso",
+      "genero": "varon",
+      "talla": "M",
+      "cantidad": 50,
+      "es_parte_de_conjunto": false,
+      "conjunto_padre_id": null,
+      "notas": "",
+      "creado_en": "2024-01-20T14:06:00Z",
+      "modificado_en": "2024-01-20T14:06:00Z"
+    }
+  },
+  {
+    "model": "pedidos.itempedido",
+    "pk": 3,
+    "fields": {
+      "pedido": 1,
+      "tipo_prenda": "polera",
+      "genero": "varon",
+      "talla": "M",
+      "cantidad": 50,
+      "es_parte_de_conjunto": false,
+      "conjunto_padre_id": null,
+      "notas": "",
+      "creado_en": "2024-01-20T14:07:00Z",
+      "modificado_en": "2024-01-20T14:07:00Z"
+    }
+  },
+  {
+    "model": "pedidos.itempedido",
+    "pk": 4,
+    "fields": {
+      "pedido": 1,
+      "tipo_prenda": "short",
+      "genero": "varon",
+      "talla": "M",
+      "cantidad": 50,
+      "es_parte_de_conjunto": false,
+      "conjunto_padre_id": null,
+      "notas": "",
+      "creado_en": "2024-01-20T14:08:00Z",
+      "modificado_en": "2024-01-20T14:08:00Z"
+    }
+  },
+  {
+    "model": "pedidos.itempedido",
+    "pk": 5,
+    "fields": {
+      "pedido": 2,
+      "tipo_prenda": "buso",
+      "genero": "mujer",
+      "talla": "S",
+      "cantidad": 30,
+      "es_parte_de_conjunto": false,
+      "conjunto_padre_id": null,
+      "notas": "",
+      "creado_en": "2024-01-22T10:35:00Z",
+      "modificado_en": "2024-01-22T10:35:00Z"
+    }
+  },
+  {
+    "model": "pedidos.itempedido",
+    "pk": 6,
+    "fields": {
+      "pedido": 2,
+      "tipo_prenda": "polera",
+      "genero": "mujer",
+      "talla": "S",
+      "cantidad": 30,
+      "es_parte_de_conjunto": false,
+      "conjunto_padre_id": null,
+      "notas": "",
+      "creado_en": "2024-01-22T10:36:00Z",
+      "modificado_en": "2024-01-22T10:36:00Z"
+    }
+  },
+  {
+    "model": "produccion.ordenproduccion",
+    "pk": 1,
+    "fields": {
+      "codigo": "OP-2024-00001",
+      "gestion": 2024,
+      "estado": "en_corte",
+      "fecha_inicio": "2024-02-01",
+      "fecha_fin_estimada": "2024-03-10",
+      "notas": "Primera orden del año",
+      "creado_en": "2024-01-25T09:00:00Z",
+      "modificado_en": "2024-01-25T09:00:00Z"
+    }
+  }
+]

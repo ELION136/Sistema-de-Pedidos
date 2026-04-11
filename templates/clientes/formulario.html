@@ -1,0 +1,45 @@
+{% extends 'base/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ titulo }} - Clientes{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1><i class="bi bi-building me-3"></i>{{ titulo }}</h1>
+    <p class="text-muted">
+        {% if cliente %}
+            Editando: {{ cliente.nombre }}
+        {% else %}
+            Complete la información del nuevo cliente
+        {% endif %}
+    </p>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                {% crispy form %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Ayuda</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">
+                    Complete todos los campos obligatorios para registrar un nuevo cliente.
+                </p>
+                <ul class="list-unstyled text-muted">
+                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Nombre es obligatorio</li>
+                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>El tipo de cliente ayuda a clasificar</li>
+                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>La información de contacto es importante</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

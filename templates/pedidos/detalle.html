@@ -1,0 +1,199 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{{ pedido.codigo }} - Pedido{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-start">
+        <div>
+            <h1><i class="bi bi-cart3 me-3"></i>{{ pedido.codigo }}</h1>
+            <p class="text-muted">
+                {{ pedido.cliente.nombre }} | Gestión {{ pedido.gestion }}
+            </p>
+        </div>
+        <div class="action-buttons">
+            <a href="{% url 'pedidos:agregar_items' pedido.pk %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-2"></i>Agregar Ítems
+            </a>
+            <a href="{% url 'pedidos:importar_excel' pedido.pk %}" class="btn btn-success">
+                <i class="bi bi-file-earmark-excel me-2"></i>Importar Excel
+            </a>
+            <a href="{% url 'pedidos:resumen_produccion' pedido.pk %}" class="btn btn-info text-white">
+                <i class="bi bi-gear me-2"></i>Resumen Producción
+            </a>
+            <a href="{% url 'pedidos:editar' pedido.pk %}" class="btn btn-outline-primary">
+                <i class="bi bi-pencil me-2"></i>Editar
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Información del Pedido -->
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Información</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr>
+                        <td class="text-muted">Cliente:</td>
+                        <td class="text-end fw-bold">
+                            <a href="{% url 'clientes:detalle' pedido.cliente.pk %}">
+                                {{ pedido.cliente.nombre }}
+                            </a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Gestión:</td>
+                        <td class="text-end">{{ pedido.gestion }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Tipo:</td>
+                        <td class="text-end">{{ pedido.get_tipo_pedido_display }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Estado:</td>
+                        <td class="text-end">
+                            <span class="badge bg-{% if pedido.estado == 'pendiente' %}warning{% elif pedido.estado == 'en_proceso' %}info{% elif pedido.estado == 'completado' %}success{% elif pedido.estado == 'entregado' %}primary{% else %}secondary{% endif %}">
+                                {{ pedido.get_estado_display }}
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Fecha Entrega:</td>
+                        <td class="text-end">
+                            {% if pedido.fecha_entrega %}
+                                {{ pedido.fecha_entrega|date:"d/m/Y" }}
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Total Prendas:</td>
+                        <td class="text-end fw-bold text-primary fs-5">{{ total_prendas }}</td>
+                    </tr>
+                </table>
+                
+                {% if pedido.notas %}
+                <hr>
+                <p class="text-muted mb-1"><strong>Notas:</strong></p>
+                <p>{{ pedido.notas|linebreaks }}</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Resumen por Prenda -->
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-pie-chart me-2"></i>Resumen por Prenda</h5>
+            </div>
+            <div class="card-body">
+                {% if items_por_prenda %}
+                    <table class="table table-sm">
+                        {% for item in items_por_prenda %}
+                        <tr>
+                            <td>{{ item.get_tipo_prenda_display }}</td>
+                            <td class="text-end fw-bold">{{ item.total }}</td>
+                        </tr>
+                        {% endfor %}
+                    </table>
+                {% else %}
+                    <p class="text-muted text-center mb-0">No hay ítems registrados</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Ítems del Pedido -->
+    <div class="col-md-8">
+        <!-- Conjuntos -->
+        {% if conjuntos %}
+        <div class="card mb-4">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-collection me-2"></i>Conjuntos Registrados</h5>
+                <span class="badge bg-info">{{ conjuntos|length }} conjunto(s)</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Género</th>
+                                <th>Talla</th>
+                                <th>Cantidad</th>
+                                <th>Prendas Generadas</th>
+                                <th>Notas</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for conjunto in conjuntos %}
+                            <tr>
+                                <td>{{ conjunto.get_genero_display }}</td>
+                                <td>{{ conjunto.talla }}</td>
+                                <td>{{ conjunto.cantidad }}</td>
+                                <td><span class="badge bg-success">{{ conjunto.cantidad|add:conjunto.cantidad|add:conjunto.cantidad|add:conjunto.cantidad }} prendas</span></td>
+                                <td>{{ conjunto.notas|default:"-" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Ítems Individuales -->
+        <div class="card">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-list-check me-2"></i>Ítems del Pedido</h5>
+                <span class="badge bg-primary">{{ items|length }} ítem(s)</span>
+            </div>
+            <div class="card-body p-0">
+                {% if items %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Tipo</th>
+                                    <th>Género</th>
+                                    <th>Talla</th>
+                                    <th>Cantidad</th>
+                                    <th>Origen</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in items %}
+                                <tr {% if item.es_parte_de_conjunto %}class="table-light"{% endif %}>
+                                    <td>{{ item.get_tipo_prenda_display }}</td>
+                                    <td>{{ item.get_genero_display }}</td>
+                                    <td><span class="badge bg-secondary">{{ item.talla }}</span></td>
+                                    <td class="fw-bold">{{ item.cantidad }}</td>
+                                    <td>
+                                        {% if item.es_parte_de_conjunto %}
+                                            <span class="badge bg-info">De conjunto</span>
+                                        {% else %}
+                                            <span class="badge bg-primary">Individual</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <i class="bi bi-inbox"></i>
+                        <p>No hay ítems registrados</p>
+                        <a href="{% url 'pedidos:agregar_items' pedido.pk %}" class="btn btn-primary">
+                            Agregar Ítems
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,171 @@
+{% extends 'base/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Pedidos - Sistema de Gestión de Pedidos{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1><i class="bi bi-cart3 me-3"></i>Pedidos</h1>
+        <p class="text-muted">Gestión de pedidos de ropa deportiva</p>
+    </div>
+    <a href="{% url 'pedidos:crear' %}" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-2"></i>Nuevo Pedido
+    </a>
+</div>
+
+<!-- Filtros -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-2">
+                <input type="text" name="cliente" class="form-control" placeholder="Cliente" 
+                       value="{{ request.GET.cliente }}">
+            </div>
+            <div class="col-md-2">
+                <input type="number" name="gestion" class="form-control" placeholder="Gestión" 
+                       value="{{ request.GET.gestion }}">
+            </div>
+            <div class="col-md-2">
+                <select name="estado" class="form-select">
+                    <option value="">Todos los estados</option>
+                    {% for value, label in form_filtro.fields.estado.choices %}
+                        {% if value %}
+                        <option value="{{ value }}" {% if request.GET.estado == value %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select name="tipo_pedido" class="form-select">
+                    <option value="">Todos los tipos</option>
+                    {% for value, label in form_filtro.fields.tipo_pedido.choices %}
+                        {% if value %}
+                        <option value="{{ value }}" {% if request.GET.tipo_pedido == value %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-outline-primary">
+                    <i class="bi bi-search me-2"></i>Filtrar
+                </button>
+                <a href="{% url 'pedidos:lista' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-circle me-2"></i>Limpiar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Lista de Pedidos -->
+<div class="card">
+    <div class="card-header bg-white">
+        <h5 class="mb-0">Total: {{ total_pedidos }} pedidos</h5>
+    </div>
+    <div class="card-body p-0">
+        {% if page_obj %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Cliente</th>
+                            <th>Gestión</th>
+                            <th>Tipo</th>
+                            <th>Estado</th>
+                            <th>Prendas</th>
+                            <th>Entrega</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pedido in page_obj %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'pedidos:detalle' pedido.pk %}" class="fw-bold">
+                                    {{ pedido.codigo }}
+                                </a>
+                            </td>
+                            <td>{{ pedido.cliente.nombre }}</td>
+                            <td>{{ pedido.gestion }}</td>
+                            <td>{{ pedido.get_tipo_pedido_display }}</td>
+                            <td>
+                                <span class="badge bg-{% if pedido.estado == 'pendiente' %}warning{% elif pedido.estado == 'en_proceso' %}info{% elif pedido.estado == 'completado' %}success{% elif pedido.estado == 'entregado' %}primary{% else %}secondary{% endif %}">
+                                    {{ pedido.get_estado_display }}
+                                </span>
+                            </td>
+                            <td>{{ pedido.get_total_prendas }}</td>
+                            <td>
+                                {% if pedido.fecha_entrega %}
+                                    {{ pedido.fecha_entrega|date:"d/m/Y" }}
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a href="{% url 'pedidos:detalle' pedido.pk %}" 
+                                       class="btn btn-sm btn-outline-info" title="Ver detalle">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="{% url 'pedidos:resumen_produccion' pedido.pk %}" 
+                                       class="btn btn-sm btn-outline-success" title="Resumen producción">
+                                        <i class="bi bi-gear"></i>
+                                    </a>
+                                    <a href="{% url 'pedidos:editar' pedido.pk %}" 
+                                       class="btn btn-sm btn-outline-primary" title="Editar">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Paginación -->
+            {% if page_obj.has_other_pages %}
+            <nav class="p-3">
+                <ul class="pagination justify-content-center mb-0">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">&laquo;</a>
+                        </li>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                        {% else %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">&raquo;</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        {% else %}
+            <div class="empty-state">
+                <i class="bi bi-cart"></i>
+                <p>No se encontraron pedidos</p>
+                <a href="{% url 'pedidos:crear' %}" class="btn btn-primary">Crear Pedido</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

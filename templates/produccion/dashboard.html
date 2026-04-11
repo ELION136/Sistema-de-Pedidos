@@ -1,0 +1,121 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Producción - Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1><i class="bi bi-gear-wide-connected me-3"></i>Módulo de Producción</h1>
+        <p class="text-muted">Gestión y planificación de la producción</p>
+    </div>
+    <a href="{% url 'produccion:crear_orden' %}" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-2"></i>Nueva Orden
+    </a>
+</div>
+
+<!-- Estadísticas -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card stat-card warning">
+            <div class="card-body text-center">
+                <div class="stat-value">{{ ordenes_activas }}</div>
+                <div class="stat-label">Órdenes Activas</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stat-card success">
+            <div class="card-body text-center">
+                <div class="stat-value">{{ ordenes_completadas }}</div>
+                <div class="stat-label">Órdenes Completadas</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stat-card">
+            <div class="card-body text-center">
+                <div class="stat-value">{{ total_prendas_en_produccion }}</div>
+                <div class="stat-label">Prendas en Producción</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Últimas Órdenes -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-list-task me-2"></i>Últimas Órdenes de Producción</h5>
+                <a href="{% url 'produccion:lista_ordenes' %}" class="btn btn-sm btn-outline-primary">Ver Todas</a>
+            </div>
+            <div class="card-body p-0">
+                {% if ultimas_ordenes %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Estado</th>
+                                    <th>Pedidos</th>
+                                    <th>Prendas</th>
+                                    <th>Inicio</th>
+                                    <th>Fin Est.</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for orden in ultimas_ordenes %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'produccion:detalle_orden' orden.pk %}" class="fw-bold">
+                                            {{ orden.codigo }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{% if orden.estado == 'pendiente' %}warning{% elif orden.estado == 'en_corte' %}info{% elif orden.estado == 'en_confeccion' %}primary{% elif orden.estado == 'en_acabados' %}secondary{% else %}success{% endif %}">
+                                            {{ orden.get_estado_display }}
+                                        </span>
+                                    </td>
+                                    <td>{{ orden.pedidos.count }}</td>
+                                    <td>{{ orden.get_total_prendas }}</td>
+                                    <td>{{ orden.fecha_inicio|date:"d/m/Y" }}</td>
+                                    <td>{{ orden.fecha_fin_estimada|date:"d/m/Y" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <i class="bi bi-gear"></i>
+                        <p>No hay órdenes de producción</p>
+                        <a href="{% url 'produccion:crear_orden' %}" class="btn btn-primary">Crear Orden</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Acciones Rápidas -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-lightning me-2"></i>Acciones Rápidas</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'produccion:lista_ordenes' %}" class="btn btn-outline-primary">
+                        <i class="bi bi-list me-2"></i>Ver Todas las Órdenes
+                    </a>
+                    <a href="{% url 'pedidos:lista' %}" class="btn btn-outline-info">
+                        <i class="bi bi-cart me-2"></i>Ver Pedidos
+                    </a>
+                    <a href="{% url 'core:dashboard' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-speedometer2 me-2"></i>Dashboard Principal
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,29 @@
+# Entorno
+.env
+.env.*
+
+# Python
+__pycache__/
+*.pyc
+
+# Base de datos
+db.sqlite3
+
+# Archivos estáticos
+staticfiles/
+
+# Media
+media/
+
+# Entornos virtuales
+venv/
+env/
+
+# IDEs
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+RESUMEN_ENTREGABLES.md

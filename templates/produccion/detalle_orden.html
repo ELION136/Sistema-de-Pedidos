@@ -1,0 +1,223 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{{ orden.codigo }} - Orden de Producción{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-start">
+        <div>
+            <h1><i class="bi bi-gear me-3"></i>{{ orden.codigo }}</h1>
+            <p class="text-muted">Orden de Producción - Gestión {{ orden.gestion }}</p>
+        </div>
+        <div class="action-buttons">
+            <a href="{% url 'produccion:resumen_clasificacion' orden.pk %}" class="btn btn-success">
+                <i class="bi bi-table me-2"></i>Resumen Clasificación
+            </a>
+            <a href="{% url 'produccion:reporte_materia_prima' orden.pk %}" class="btn btn-info text-white">
+                <i class="bi bi-box-seam me-2"></i>Materia Prima
+            </a>
+            <a href="{% url 'produccion:cambiar_estado' orden.pk %}" class="btn btn-warning">
+                <i class="bi bi-arrow-repeat me-2"></i>Cambiar Estado
+            </a>
+            <a href="{% url 'produccion:editar_orden' orden.pk %}" class="btn btn-outline-primary">
+                <i class="bi bi-pencil me-2"></i>Editar
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Información de la Orden -->
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Información</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr>
+                        <td class="text-muted">Código:</td>
+                        <td class="text-end fw-bold">{{ orden.codigo }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Estado:</td>
+                        <td class="text-end">
+                            <span class="badge bg-{% if orden.estado == 'pendiente' %}warning{% elif orden.estado == 'en_corte' %}info{% elif orden.estado == 'en_confeccion' %}primary{% elif orden.estado == 'en_acabados' %}secondary{% else %}success{% endif %}">
+                                {{ orden.get_estado_display }}
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Gestión:</td>
+                        <td class="text-end">{{ orden.gestion }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Fecha Inicio:</td>
+                        <td class="text-end">{{ orden.fecha_inicio|date:"d/m/Y" }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Fin Estimado:</td>
+                        <td class="text-end">{{ orden.fecha_fin_estimada|date:"d/m/Y" }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Total Prendas:</td>
+                        <td class="text-end fw-bold text-primary fs-5">{{ total_prendas }}</td>
+                    </tr>
+                </table>
+                
+                {% if orden.notas %}
+                <hr>
+                <p class="text-muted mb-1"><strong>Notas:</strong></p>
+                <p>{{ orden.notas|linebreaks }}</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Pedidos Incluidos -->
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-cart3 me-2"></i>Pedidos Incluidos</h5>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    {% for pedido in pedidos %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <a href="{% url 'pedidos:detalle' pedido.pk %}">{{ pedido.codigo }}</a>
+                        <span class="badge bg-primary">{{ pedido.get_total_prendas }} prendas</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Resumen por Prenda -->
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-pie-chart me-2"></i>Resumen por Tipo de Prenda</h5>
+            </div>
+            <div class="card-body">
+                {% if resumen_por_prenda %}
+                    <div class="row">
+                        {% for item in resumen_por_prenda %}
+                        <div class="col-md-3 mb-3">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h3 class="mb-1">{{ item.total }}</h3>
+                                    <p class="text-muted mb-0">{{ item.get_tipo_prenda_display }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center mb-0">No hay datos disponibles</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Resumen Detallado -->
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-table me-2"></i>Detalle por Género y Talla</h5>
+            </div>
+            <div class="card-body p-0">
+                {% if resumen_detallado %}
+                    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                        <table class="table table-hover mb-0">
+                            <thead class="sticky-top table-dark">
+                                <tr>
+                                    <th>Tipo</th>
+                                    <th>Género</th>
+                                    <th>Talla</th>
+                                    <th class="text-center">Cantidad</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in resumen_detallado %}
+                                <tr>
+                                    <td>{{ item.get_tipo_prenda_display }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if item.genero == 'varon' %}primary{% elif item.genero == 'mujer' %}danger{% else %}secondary{% endif %}">
+                                            {{ item.get_genero_display }}
+                                        </span>
+                                    </td>
+                                    <td><span class="badge bg-secondary">{{ item.talla }}</span></td>
+                                    <td class="text-center fw-bold">{{ item.cantidad_total }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <i class="bi bi-inbox"></i>
+                        <p>No hay datos disponibles</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Materia Prima -->
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-box-seam me-2"></i>Materia Prima Requerida</h5>
+                <a href="{% url 'produccion:agregar_materia_prima' orden.pk %}" class="btn btn-sm btn-primary">
+                    <i class="bi bi-plus-circle me-1"></i>Agregar Material
+                </a>
+            </div>
+            <div class="card-body p-0">
+                {% if materia_prima %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Tipo</th>
+                                    <th>Descripción</th>
+                                    <th>Cantidad Requerida</th>
+                                    <th>Cantidad Comprada</th>
+                                    <th>Pendiente</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for materia in materia_prima %}
+                                <tr>
+                                    <td>{{ materia.get_tipo_material_display }}</td>
+                                    <td>{{ materia.descripcion }}</td>
+                                    <td>{{ materia.cantidad_requerida }} {{ materia.unidad_medida }}</td>
+                                    <td>{{ materia.cantidad_comprada }} {{ materia.unidad_medida }}</td>
+                                    <td class="fw-bold {% if materia.get_pendiente_compra > 0 %}text-danger{% else %}text-success{% endif %}">
+                                        {{ materia.get_pendiente_compra }} {{ materia.unidad_medida }}
+                                    </td>
+                                    <td>
+                                        {% if materia.esta_completo %}
+                                            <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Completo</span>
+                                        {% else %}
+                                            <span class="badge bg-warning"><i class="bi bi-clock me-1"></i>Pendiente</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <i class="bi bi-box"></i>
+                        <p>No hay materia prima registrada</p>
+                        <a href="{% url 'produccion:agregar_materia_prima' orden.pk %}" class="btn btn-primary">
+                            Agregar Material
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,140 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Clientes - Sistema de Gestión de Pedidos{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1><i class="bi bi-building me-3"></i>Clientes</h1>
+        <p class="text-muted">Gestión de colegios y clientes</p>
+    </div>
+    <a href="{% url 'clientes:crear' %}" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-2"></i>Nuevo Cliente
+    </a>
+</div>
+
+<!-- Filtros -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                {{ form_filtro.nombre }}
+            </div>
+            <div class="col-md-2">
+                {{ form_filtro.tipo }}
+            </div>
+            <div class="col-md-2">
+                {{ form_filtro.ciudad }}
+            </div>
+            <div class="col-md-2">
+                {{ form_filtro.activo }}
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-outline-primary">
+                    <i class="bi bi-search me-2"></i>Filtrar
+                </button>
+                <a href="{% url 'clientes:lista' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-circle me-2"></i>Limpiar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Lista de Clientes -->
+<div class="card">
+    <div class="card-header bg-white">
+        <h5 class="mb-0">Total: {{ total_clientes }} clientes</h5>
+    </div>
+    <div class="card-body p-0">
+        {% if page_obj %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Tipo</th>
+                            <th>Contacto</th>
+                            <th>Teléfono</th>
+                            <th>Ciudad</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cliente in page_obj %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'clientes:detalle' cliente.pk %}" class="fw-bold">
+                                    {{ cliente.nombre }}
+                                </a>
+                            </td>
+                            <td>{{ cliente.get_tipo_display }}</td>
+                            <td>{{ cliente.contacto_nombre|default:"-" }}</td>
+                            <td>{{ cliente.telefono|default:"-" }}</td>
+                            <td>{{ cliente.ciudad|default:"-" }}</td>
+                            <td>
+                                {% if cliente.activo %}
+                                    <span class="badge bg-success">Activo</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Inactivo</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a href="{% url 'clientes:detalle' cliente.pk %}" 
+                                       class="btn btn-sm btn-outline-info" title="Ver detalle">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="{% url 'clientes:editar' cliente.pk %}" 
+                                       class="btn btn-sm btn-outline-primary" title="Editar">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Paginación -->
+            {% if page_obj.has_other_pages %}
+            <nav class="p-3">
+                <ul class="pagination justify-content-center mb-0">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">&laquo;</a>
+                        </li>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                        {% else %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">&raquo;</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        {% else %}
+            <div class="empty-state">
+                <i class="bi bi-building"></i>
+                <p>No se encontraron clientes</p>
+                <a href="{% url 'clientes:crear' %}" class="btn btn-primary">Crear Cliente</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
