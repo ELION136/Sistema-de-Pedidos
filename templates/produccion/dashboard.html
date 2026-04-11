@@ -1,121 +1,199 @@
 {% extends 'base/base.html' %}
+{% load static %} 
 
-{% block title %}Producción - Dashboard{% endblock %}
+{% block title %}Producción — Dashboard{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dash.css' %}">
+{% endblock %}
 
 {% block content %}
-<div class="page-header d-flex justify-content-between align-items-center">
-    <div>
-        <h1><i class="bi bi-gear-wide-connected me-3"></i>Módulo de Producción</h1>
-        <p class="text-muted">Gestión y planificación de la producción</p>
-    </div>
-    <a href="{% url 'produccion:crear_orden' %}" class="btn btn-primary">
-        <i class="bi bi-plus-circle me-2"></i>Nueva Orden
-    </a>
-</div>
 
-<!-- Estadísticas -->
-<div class="row mb-4">
-    <div class="col-md-4">
-        <div class="card stat-card warning">
-            <div class="card-body text-center">
-                <div class="stat-value">{{ ordenes_activas }}</div>
-                <div class="stat-label">Órdenes Activas</div>
-            </div>
-        </div>
+<!-- ── Page header ── -->
+<div class="page-header">
+    <div class="page-title">
+        <h1>Módulo de producción</h1>
+        <p>Gestión y planificación de la producción</p>
     </div>
-    <div class="col-md-4">
-        <div class="card stat-card success">
-            <div class="card-body text-center">
-                <div class="stat-value">{{ ordenes_completadas }}</div>
-                <div class="stat-label">Órdenes Completadas</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card stat-card">
-            <div class="card-body text-center">
-                <div class="stat-value">{{ total_prendas_en_produccion }}</div>
-                <div class="stat-label">Prendas en Producción</div>
-            </div>
-        </div>
+    <div class="page-actions">
+        <a href="{% url 'produccion:crear_orden' %}" class="btn btn-primary">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Nueva orden
+        </a>
     </div>
 </div>
 
-<div class="row">
-    <!-- Últimas Órdenes -->
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="bi bi-list-task me-2"></i>Últimas Órdenes de Producción</h5>
-                <a href="{% url 'produccion:lista_ordenes' %}" class="btn btn-sm btn-outline-primary">Ver Todas</a>
-            </div>
-            <div class="card-body p-0">
-                {% if ultimas_ordenes %}
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead>
-                                <tr>
-                                    <th>Código</th>
-                                    <th>Estado</th>
-                                    <th>Pedidos</th>
-                                    <th>Prendas</th>
-                                    <th>Inicio</th>
-                                    <th>Fin Est.</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for orden in ultimas_ordenes %}
-                                <tr>
-                                    <td>
-                                        <a href="{% url 'produccion:detalle_orden' orden.pk %}" class="fw-bold">
-                                            {{ orden.codigo }}
-                                        </a>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-{% if orden.estado == 'pendiente' %}warning{% elif orden.estado == 'en_corte' %}info{% elif orden.estado == 'en_confeccion' %}primary{% elif orden.estado == 'en_acabados' %}secondary{% else %}success{% endif %}">
-                                            {{ orden.get_estado_display }}
-                                        </span>
-                                    </td>
-                                    <td>{{ orden.pedidos.count }}</td>
-                                    <td>{{ orden.get_total_prendas }}</td>
-                                    <td>{{ orden.fecha_inicio|date:"d/m/Y" }}</td>
-                                    <td>{{ orden.fecha_fin_estimada|date:"d/m/Y" }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                {% else %}
-                    <div class="empty-state">
-                        <i class="bi bi-gear"></i>
-                        <p>No hay órdenes de producción</p>
-                        <a href="{% url 'produccion:crear_orden' %}" class="btn btn-primary">Crear Orden</a>
-                    </div>
-                {% endif %}
-            </div>
-        </div>
+<!-- ══════════════════════════════════════
+     STATS
+══════════════════════════════════════ -->
+<div class="stats-grid">
+
+    <div class="stat-card warning">
+        <div class="stat-label">Órdenes activas</div>
+        <div class="stat-value">{{ ordenes_activas }}</div>
+        <div class="stat-sub">En proceso ahora</div>
     </div>
-    
-    <!-- Acciones Rápidas -->
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-header bg-white">
-                <h5 class="mb-0"><i class="bi bi-lightning me-2"></i>Acciones Rápidas</h5>
+
+    <div class="stat-card success">
+        <div class="stat-label">Órdenes completadas</div>
+        <div class="stat-value">{{ ordenes_completadas }}</div>
+        <div class="stat-sub">Finalizadas</div>
+    </div>
+
+    <div class="stat-card info">
+        <div class="stat-label">Prendas en producción</div>
+        <div class="stat-value">{{ total_prendas_en_produccion }}</div>
+        <div class="stat-sub">Unidades activas</div>
+    </div>
+
+</div>
+
+<!-- ══════════════════════════════════════
+     ACCIONES RÁPIDAS + TABLA
+══════════════════════════════════════ -->
+<div class="content-grid">
+
+    <!-- Tabla de órdenes (columna principal) -->
+    <div class="panel">
+        <div class="panel-header">
+            <span class="panel-title">
+                <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                Últimas órdenes de producción
+            </span>
+            <a href="{% url 'produccion:lista_ordenes' %}" class="btn btn-ghost btn-sm">
+                Ver todas
+                <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </a>
+        </div>
+
+        {% if ultimas_ordenes %}
+        <div class="table-wrap-scroll">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Estado</th>
+                        <th>Pedidos</th>
+                        <th>Prendas</th>
+                        <th>Inicio</th>
+                        <th>Fin est.</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for orden in ultimas_ordenes %}
+                    <tr>
+                        <td data-label="Código">
+                            <div class="orden-cell">
+                                <span class="orden-dot dot-{{ orden.estado }}" aria-hidden="true"></span>
+                                <a class="table-link" href="{% url 'produccion:detalle_orden' orden.pk %}">
+                                    {{ orden.codigo }}
+                                </a>
+                            </div>
+                        </td>
+
+                        <td data-label="Estado">
+                            {% if orden.estado == 'pendiente' %}
+                                <span class="badge badge-warning">{{ orden.get_estado_display }}</span>
+                            {% elif orden.estado == 'en_corte' %}
+                                <span class="badge badge-info">{{ orden.get_estado_display }}</span>
+                            {% elif orden.estado == 'en_confeccion' %}
+                                <span class="badge badge-accent">{{ orden.get_estado_display }}</span>
+                            {% elif orden.estado == 'en_acabados' %}
+                                <span class="badge" style="background:rgba(192,132,252,0.1);color:#c084fc;border:1px solid rgba(192,132,252,0.25);">{{ orden.get_estado_display }}</span>
+                            {% else %}
+                                <span class="badge badge-success">{{ orden.get_estado_display }}</span>
+                            {% endif %}
+                        </td>
+
+                        <td data-label="Pedidos">{{ orden.pedidos.count }}</td>
+                        <td data-label="Prendas">{{ orden.get_total_prendas }}</td>
+
+                        <td data-label="Inicio">
+                            <span class="date-cell">{{ orden.fecha_inicio|date:"d/m/Y" }}</span>
+                        </td>
+
+                        <td data-label="Fin est.">
+                            <span class="date-cell">{{ orden.fecha_fin_estimada|date:"d/m/Y" }}</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg>
             </div>
-            <div class="card-body">
-                <div class="d-grid gap-2">
-                    <a href="{% url 'produccion:lista_ordenes' %}" class="btn btn-outline-primary">
-                        <i class="bi bi-list me-2"></i>Ver Todas las Órdenes
-                    </a>
-                    <a href="{% url 'pedidos:lista' %}" class="btn btn-outline-info">
-                        <i class="bi bi-cart me-2"></i>Ver Pedidos
-                    </a>
-                    <a href="{% url 'core:dashboard' %}" class="btn btn-outline-secondary">
-                        <i class="bi bi-speedometer2 me-2"></i>Dashboard Principal
-                    </a>
+            <h3>Sin órdenes aún</h3>
+            <p>Crea la primera orden para comenzar</p>
+            <a href="{% url 'produccion:crear_orden' %}" class="btn btn-primary" style="margin-top:14px;">
+                <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Crear orden
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Acciones rápidas (columna lateral) -->
+    <div class="panel">
+        <div class="panel-header">
+            <span class="panel-title">
+                <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                Acciones rápidas
+            </span>
+        </div>
+
+        <div class="quick-actions">
+
+            <a href="{% url 'produccion:crear_orden' %}" class="quick-action-item">
+                <div class="qa-icon orange">
+                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg>
                 </div>
-            </div>
+                <div>
+                    <div class="qa-label">Nueva orden</div>
+                    <div class="qa-sub">Crear orden de producción</div>
+                </div>
+                <span class="qa-arrow"><svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+            </a>
+
+            <a href="{% url 'produccion:lista_ordenes' %}" class="quick-action-item">
+                <div class="qa-icon blue">
+                    <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                </div>
+                <div>
+                    <div class="qa-label">Ver todas las órdenes</div>
+                    <div class="qa-sub">Listado completo</div>
+                </div>
+                <span class="qa-arrow"><svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+            </a>
+
+            <a href="{% url 'pedidos:lista' %}" class="quick-action-item">
+                <div class="qa-icon green">
+                    <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+                </div>
+                <div>
+                    <div class="qa-label">Ver pedidos</div>
+                    <div class="qa-sub">Pedidos pendientes</div>
+                </div>
+                <span class="qa-arrow"><svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+            </a>
+
+            <a href="{% url 'core:dashboard' %}" class="quick-action-item">
+                <div class="qa-icon gray">
+                    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                </div>
+                <div>
+                    <div class="qa-label">Dashboard principal</div>
+                    <div class="qa-sub">Vista general del sistema</div>
+                </div>
+                <span class="qa-arrow"><svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+            </a>
+
         </div>
     </div>
+
 </div>
+
 {% endblock %}

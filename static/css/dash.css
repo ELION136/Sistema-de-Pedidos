@@ -1,0 +1,155 @@
+/* ── Stats ── */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+        margin-bottom: 24px;
+    }
+
+    /* ── Layout principal ── */
+    .content-grid {
+        display: grid;
+        grid-template-columns: 1fr 280px;
+        gap: 20px;
+    }
+
+    /* ── Panel genérico ── */
+    .panel {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .panel-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 15px 20px;
+        border-bottom: 1px solid var(--border);
+        flex-shrink: 0;
+    }
+
+    .panel-title {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        font-family: var(--font-display);
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-1);
+    }
+
+    .panel-title svg {
+        width: 15px; height: 15px;
+        stroke: var(--text-3);
+        fill: none;
+        stroke-width: 1.8;
+    }
+
+    /* ── Tabla interna ── */
+    .panel table thead th { padding: 10px 16px; font-size: 10.5px; }
+    .panel table tbody td { padding: 11px 16px; font-size: 13px; }
+
+    .orden-cell {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+    }
+
+    .orden-dot {
+        width: 7px; height: 7px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+
+    .dot-pendiente     { background: #fbbf24; box-shadow: 0 0 5px rgba(251,191,36,0.4); }
+    .dot-en_corte      { background: #60a5fa; box-shadow: 0 0 5px rgba(96,165,250,0.4); }
+    .dot-en_confeccion { background: var(--accent); box-shadow: 0 0 5px rgba(249,115,22,0.4); }
+    .dot-en_acabados   { background: #c084fc; box-shadow: 0 0 5px rgba(192,132,252,0.4); }
+    .dot-completada    { background: #4ade80; box-shadow: 0 0 5px rgba(74,222,128,0.4); }
+
+    .table-link {
+        font-family: var(--font-display);
+        font-size: 12.5px;
+        font-weight: 700;
+        color: var(--accent);
+        letter-spacing: 0.2px;
+    }
+
+    .table-link:hover { opacity: 0.75; }
+
+    .date-cell {
+        font-size: 12.5px;
+        color: var(--text-2);
+        white-space: nowrap;
+    }
+
+    /* ── Acciones rápidas ── */
+    .quick-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .quick-action-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 18px;
+        border-bottom: 1px solid var(--border);
+        text-decoration: none;
+        color: var(--text-2);
+        font-size: 13.5px;
+        transition: background var(--transition), color var(--transition);
+    }
+
+    .quick-action-item:last-child { border-bottom: none; }
+
+    .quick-action-item:hover {
+        background: var(--surface2);
+        color: var(--text-1);
+    }
+
+    .quick-action-item:hover .qa-icon { border-color: var(--border-hover); }
+
+    .qa-icon {
+        width: 34px; height: 34px;
+        border-radius: var(--radius-xs);
+        border: 1px solid var(--border);
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
+        transition: border-color var(--transition);
+    }
+
+    .qa-icon svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+
+    .qa-icon.orange { background: var(--accent-muted); border-color: rgba(249,115,22,0.2); color: var(--accent); }
+    .qa-icon.blue   { background: var(--blue-bg);      border-color: var(--blue-border);   color: #60a5fa; }
+    .qa-icon.green  { background: var(--green-bg);     border-color: var(--green-border);  color: #4ade80; }
+    .qa-icon.gray   { background: var(--surface2);     color: var(--text-2); }
+
+    .qa-label { font-weight: 500; color: inherit; }
+    .qa-sub   { font-size: 11.5px; color: var(--text-3); margin-top: 1px; }
+
+    .qa-arrow {
+        margin-left: auto;
+        opacity: 0;
+        transition: opacity var(--transition), transform var(--transition);
+    }
+
+    .quick-action-item:hover .qa-arrow { opacity: 1; transform: translateX(3px); }
+
+    .qa-arrow svg { width: 14px; height: 14px; stroke: var(--text-3); fill: none; stroke-width: 2; }
+
+    /* ── Responsive ── */
+    @media (max-width: 960px) {
+        .content-grid { grid-template-columns: 1fr; }
+        .stats-grid   { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    @media (max-width: 600px) {
+        .stats-grid { grid-template-columns: 1fr; }
+    }

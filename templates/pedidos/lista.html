@@ -1,171 +1,227 @@
 {% extends 'base/base.html' %}
-{% load crispy_forms_tags %}
+{% load static %} 
 
-{% block title %}Pedidos - Sistema de Gestión de Pedidos{% endblock %}
+{% block title %}Pedidos — Sistema de Gestión de Pedidos{% endblock %}
+
+{% block extra_css %}
+    {# Enlace al archivo CSS externo #}
+    <link rel="stylesheet" href="{% static 'css/pedidos_list.css' %}">
+{% endblock %}
 
 {% block content %}
-<div class="page-header d-flex justify-content-between align-items-center">
-    <div>
-        <h1><i class="bi bi-cart3 me-3"></i>Pedidos</h1>
-        <p class="text-muted">Gestión de pedidos de ropa deportiva</p>
-    </div>
-    <a href="{% url 'pedidos:crear' %}" class="btn btn-primary">
-        <i class="bi bi-plus-circle me-2"></i>Nuevo Pedido
-    </a>
-</div>
 
-<!-- Filtros -->
-<div class="card mb-4">
-    <div class="card-body">
-        <form method="get" class="row g-3">
-            <div class="col-md-2">
-                <input type="text" name="cliente" class="form-control" placeholder="Cliente" 
-                       value="{{ request.GET.cliente }}">
-            </div>
-            <div class="col-md-2">
-                <input type="number" name="gestion" class="form-control" placeholder="Gestión" 
-                       value="{{ request.GET.gestion }}">
-            </div>
-            <div class="col-md-2">
-                <select name="estado" class="form-select">
-                    <option value="">Todos los estados</option>
-                    {% for value, label in form_filtro.fields.estado.choices %}
-                        {% if value %}
-                        <option value="{{ value }}" {% if request.GET.estado == value %}selected{% endif %}>
-                            {{ label }}
-                        </option>
-                        {% endif %}
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-md-2">
-                <select name="tipo_pedido" class="form-select">
-                    <option value="">Todos los tipos</option>
-                    {% for value, label in form_filtro.fields.tipo_pedido.choices %}
-                        {% if value %}
-                        <option value="{{ value }}" {% if request.GET.tipo_pedido == value %}selected{% endif %}>
-                            {{ label }}
-                        </option>
-                        {% endif %}
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-md-4">
-                <button type="submit" class="btn btn-outline-primary">
-                    <i class="bi bi-search me-2"></i>Filtrar
-                </button>
-                <a href="{% url 'pedidos:lista' %}" class="btn btn-outline-secondary">
-                    <i class="bi bi-x-circle me-2"></i>Limpiar
-                </a>
-            </div>
-        </form>
+<!-- ── Page header ── -->
+<div class="page-header">
+    <div class="page-title">
+        <h1>Pedidos</h1>
+        <p>Gestión de pedidos de ropa deportiva</p>
+    </div>
+    <div class="page-actions">
+        <a href="{% url 'pedidos:crear' %}" class="btn btn-primary">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Nuevo pedido
+        </a>
     </div>
 </div>
 
-<!-- Lista de Pedidos -->
-<div class="card">
-    <div class="card-header bg-white">
-        <h5 class="mb-0">Total: {{ total_pedidos }} pedidos</h5>
-    </div>
-    <div class="card-body p-0">
-        {% if page_obj %}
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead>
-                        <tr>
-                            <th>Código</th>
-                            <th>Cliente</th>
-                            <th>Gestión</th>
-                            <th>Tipo</th>
-                            <th>Estado</th>
-                            <th>Prendas</th>
-                            <th>Entrega</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for pedido in page_obj %}
-                        <tr>
-                            <td>
-                                <a href="{% url 'pedidos:detalle' pedido.pk %}" class="fw-bold">
-                                    {{ pedido.codigo }}
-                                </a>
-                            </td>
-                            <td>{{ pedido.cliente.nombre }}</td>
-                            <td>{{ pedido.gestion }}</td>
-                            <td>{{ pedido.get_tipo_pedido_display }}</td>
-                            <td>
-                                <span class="badge bg-{% if pedido.estado == 'pendiente' %}warning{% elif pedido.estado == 'en_proceso' %}info{% elif pedido.estado == 'completado' %}success{% elif pedido.estado == 'entregado' %}primary{% else %}secondary{% endif %}">
-                                    {{ pedido.get_estado_display }}
-                                </span>
-                            </td>
-                            <td>{{ pedido.get_total_prendas }}</td>
-                            <td>
-                                {% if pedido.fecha_entrega %}
-                                    {{ pedido.fecha_entrega|date:"d/m/Y" }}
-                                {% else %}
-                                    <span class="text-muted">-</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <div class="action-buttons">
-                                    <a href="{% url 'pedidos:detalle' pedido.pk %}" 
-                                       class="btn btn-sm btn-outline-info" title="Ver detalle">
-                                        <i class="bi bi-eye"></i>
-                                    </a>
-                                    <a href="{% url 'pedidos:resumen_produccion' pedido.pk %}" 
-                                       class="btn btn-sm btn-outline-success" title="Resumen producción">
-                                        <i class="bi bi-gear"></i>
-                                    </a>
-                                    <a href="{% url 'pedidos:editar' pedido.pk %}" 
-                                       class="btn btn-sm btn-outline-primary" title="Editar">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            
-            <!-- Paginación -->
-            {% if page_obj.has_other_pages %}
-            <nav class="p-3">
-                <ul class="pagination justify-content-center mb-0">
-                    {% if page_obj.has_previous %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">&laquo;</a>
-                        </li>
+<!-- ══════════════════════════════════════
+     FILTROS
+══════════════════════════════════════ -->
+<div class="filters-panel">
+    <form method="get" class="filters-form">
+
+        <div class="filter-field">
+            <label for="f-cliente">Cliente</label>
+            <input type="text" id="f-cliente" name="cliente" class="form-control"
+                   placeholder="Buscar colegio…" value="{{ request.GET.cliente }}">
+        </div>
+
+        <div class="filter-field">
+            <label for="f-gestion">Gestión</label>
+            <input type="number" id="f-gestion" name="gestion" class="form-control"
+                   placeholder="Ej: 2024" value="{{ request.GET.gestion }}">
+        </div>
+
+        <div class="filter-field">
+            <label for="f-estado">Estado</label>
+            <select id="f-estado" name="estado" class="form-select">
+                <option value="">Todos los estados</option>
+                {% for value, label in form_filtro.fields.estado.choices %}
+                    {% if value %}
+                    <option value="{{ value }}" {% if request.GET.estado == value %}selected{% endif %}>
+                        {{ label }}
+                    </option>
                     {% endif %}
-                    
-                    {% for num in page_obj.paginator.page_range %}
-                        {% if page_obj.number == num %}
-                            <li class="page-item active">
-                                <span class="page-link">{{ num }}</span>
-                            </li>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="filter-field">
+            <label for="f-tipo">Tipo de pedido</label>
+            <select id="f-tipo" name="tipo_pedido" class="form-select">
+                <option value="">Todos los tipos</option>
+                {% for value, label in form_filtro.fields.tipo_pedido.choices %}
+                    {% if value %}
+                    <option value="{{ value }}" {% if request.GET.tipo_pedido == value %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="filter-actions">
+            <button type="submit" class="btn btn-primary">
+                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                Filtrar
+            </button>
+            <a href="{% url 'pedidos:lista' %}" class="btn btn-ghost">
+                <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                Limpiar
+            </a>
+        </div>
+
+    </form>
+</div>
+
+<!-- ══════════════════════════════════════
+     TABLA DE PEDIDOS
+══════════════════════════════════════ -->
+<div class="table-panel">
+
+    <div class="table-panel-header">
+        <span class="table-count">
+            <strong>{{ total_pedidos }}</strong> pedidos encontrados
+        </span>
+    </div>
+
+    {% if page_obj %}
+    <div class="table-wrap-scroll">
+        <table>
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Cliente</th>
+                    <th>Gestión</th>
+                    <th>Tipo</th>
+                    <th>Estado</th>
+                    <th>Prendas</th>
+                    <th>Entrega</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pedido in page_obj %}
+                <tr>
+                    <td data-label="Código">
+                        <a class="table-link" href="{% url 'pedidos:detalle' pedido.pk %}">{{ pedido.codigo }}</a>
+                    </td>
+
+                    <td data-label="Cliente">{{ pedido.cliente.nombre }}</td>
+
+                    <td data-label="Gestión">{{ pedido.gestion }}</td>
+
+                    <td data-label="Tipo">{{ pedido.get_tipo_pedido_display }}</td>
+
+                    <td data-label="Estado">
+                        {% if pedido.estado == 'pendiente' %}
+                            <span class="badge badge-warning">{{ pedido.get_estado_display }}</span>
+                        {% elif pedido.estado == 'en_proceso' %}
+                            <span class="badge badge-info">{{ pedido.get_estado_display }}</span>
+                        {% elif pedido.estado == 'completado' %}
+                            <span class="badge badge-success">{{ pedido.get_estado_display }}</span>
+                        {% elif pedido.estado == 'entregado' %}
+                            <span class="badge badge-accent">{{ pedido.get_estado_display }}</span>
                         {% else %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
-                            </li>
+                            <span class="badge badge-default">{{ pedido.get_estado_display }}</span>
                         {% endif %}
-                    {% endfor %}
-                    
-                    {% if page_obj.has_next %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">&raquo;</a>
-                        </li>
-                    {% endif %}
-                </ul>
-            </nav>
-            {% endif %}
-        {% else %}
-            <div class="empty-state">
-                <i class="bi bi-cart"></i>
-                <p>No se encontraron pedidos</p>
-                <a href="{% url 'pedidos:crear' %}" class="btn btn-primary">Crear Pedido</a>
-            </div>
-        {% endif %}
+                    </td>
+
+                    <td data-label="Prendas">{{ pedido.get_total_prendas }}</td>
+
+                    <td data-label="Entrega">
+                        {% if pedido.fecha_entrega %}
+                            {{ pedido.fecha_entrega|date:"d/m/Y" }}
+                        {% else %}
+                            <span class="text-muted-dash">—</span>
+                        {% endif %}
+                    </td>
+
+                    <td data-label="Acciones">
+                        <div class="row-actions">
+                            <a href="{% url 'pedidos:detalle' pedido.pk %}"
+                               class="btn-icon view" title="Ver detalle" aria-label="Ver detalle de {{ pedido.codigo }}">
+                                <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                            </a>
+                            <a href="{% url 'pedidos:resumen_produccion' pedido.pk %}"
+                               class="btn-icon prod" title="Resumen producción" aria-label="Resumen de producción de {{ pedido.codigo }}">
+                                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg>
+                            </a>
+                            <a href="{% url 'pedidos:editar' pedido.pk %}"
+                               class="btn-icon edit" title="Editar" aria-label="Editar {{ pedido.codigo }}">
+                                <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
+
+    <!-- Paginación -->
+    {% if page_obj.has_other_pages %}
+    <nav class="pagination" aria-label="Paginación de pedidos">
+
+        {% if page_obj.has_previous %}
+        <a class="page-btn" href="?page={{ page_obj.previous_page_number }}{% if request.GET.cliente %}&cliente={{ request.GET.cliente }}{% endif %}{% if request.GET.gestion %}&gestion={{ request.GET.gestion }}{% endif %}{% if request.GET.estado %}&estado={{ request.GET.estado }}{% endif %}{% if request.GET.tipo_pedido %}&tipo_pedido={{ request.GET.tipo_pedido }}{% endif %}" aria-label="Página anterior">
+            <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+        </a>
+        {% else %}
+        <span class="page-btn disabled" aria-disabled="true">
+            <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+        </span>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+                <span class="page-btn active" aria-current="page">{{ num }}</span>
+            {% elif num >= page_obj.number|add:"-2" and num <= page_obj.number|add:"2" %}
+                <a class="page-btn" href="?page={{ num }}{% if request.GET.cliente %}&cliente={{ request.GET.cliente }}{% endif %}{% if request.GET.gestion %}&gestion={{ request.GET.gestion }}{% endif %}{% if request.GET.estado %}&estado={{ request.GET.estado }}{% endif %}{% if request.GET.tipo_pedido %}&tipo_pedido={{ request.GET.tipo_pedido }}{% endif %}">{{ num }}</a>
+            {% elif num == 1 or num == page_obj.paginator.num_pages %}
+                <a class="page-btn" href="?page={{ num }}{% if request.GET.cliente %}&cliente={{ request.GET.cliente }}{% endif %}{% if request.GET.gestion %}&gestion={{ request.GET.gestion }}{% endif %}{% if request.GET.estado %}&estado={{ request.GET.estado }}{% endif %}{% if request.GET.tipo_pedido %}&tipo_pedido={{ request.GET.tipo_pedido }}{% endif %}">{{ num }}</a>
+            {% elif num == page_obj.number|add:"-3" or num == page_obj.number|add:"3" %}
+                <span class="page-btn disabled">…</span>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <a class="page-btn" href="?page={{ page_obj.next_page_number }}{% if request.GET.cliente %}&cliente={{ request.GET.cliente }}{% endif %}{% if request.GET.gestion %}&gestion={{ request.GET.gestion }}{% endif %}{% if request.GET.estado %}&estado={{ request.GET.estado }}{% endif %}{% if request.GET.tipo_pedido %}&tipo_pedido={{ request.GET.tipo_pedido }}{% endif %}" aria-label="Página siguiente">
+            <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+        </a>
+        {% else %}
+        <span class="page-btn disabled" aria-disabled="true">
+            <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+        </span>
+        {% endif %}
+
+    </nav>
+    {% endif %}
+
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state-icon">
+            <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+        </div>
+        <h3>No se encontraron pedidos</h3>
+        <p>Prueba ajustando los filtros o crea un nuevo pedido</p>
+        <a href="{% url 'pedidos:crear' %}" class="btn btn-primary" style="margin-top:14px;">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Crear pedido
+        </a>
+    </div>
+    {% endif %}
+
 </div>
+
 {% endblock %}
