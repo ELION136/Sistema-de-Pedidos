@@ -1,5 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from docx import Document
+from docx.shared import Inches, Pt
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+from django.http import HttpResponse
+from reportlab.lib.pagesizes import A4, landscape
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum, Count, Q
 from django.core.paginator import Paginator
@@ -13,32 +18,187 @@ from .forms import (
 )
 from apps.clientes.models import Cliente
 
+# ── 1. NUEVA dashboard_personalizados ────────────────────────────────────────
 @login_required
 def dashboard_personalizados(request):
-    pedidos = PedidoPersonalizado.objects.all()
+    # ── Filtros del resumen ───────────────────────────────────────────────
+    tipo_prenda  = request.GET.get('tipo_prenda', '').strip()
+    talla        = request.GET.get('talla', '').strip()
+    genero       = request.GET.get('genero', '').strip()
+    beneficiario = request.GET.get('beneficiario', '').strip()
+    cliente_txt  = request.GET.get('cliente', '').strip()
+ 
+    # ── Stats globales (siempre sobre todos los pedidos) ──────────────────
+    todos          = PedidoPersonalizado.objects.all()
+    total_personas = todos.count()
+    total_prendas  = ItemPedidoPersonalizado.objects.aggregate(t=Sum('cantidad'))['t'] or 0
+    total_aportes  = todos.aggregate(t=Sum('aporte'))['t'] or 0
+    total_saldos   = todos.aggregate(t=Sum('saldo'))['t'] or 0
+ 
+    # ── Resumen de prendas enriquecido con beneficiario y cliente ─────────
+    # Anotamos directamente sobre ItemPedidoPersonalizado para incluir
+    # los datos del pedido (beneficiario, cliente, categoría, gestión)
+    items_qs = (
+        ItemPedidoPersonalizado.objects
+        .select_related('pedido', 'pedido__cliente')
+        .values(
+            'tipo_prenda',
+            'talla',
+            'genero',
+            'pedido__nombre_completo',   # beneficiario
+            'pedido__cliente__nombre',   # institución
+            'pedido__categoria',
+            'pedido__gestion',
+        )
+        .annotate(total=Sum('cantidad'))
+        .order_by('tipo_prenda', 'talla', 'genero', 'pedido__nombre_completo')
+    )
+ 
+    # Aplicar filtros opcionales
+    if tipo_prenda:
+        items_qs = items_qs.filter(tipo_prenda=tipo_prenda)
+    if talla:
+        items_qs = items_qs.filter(talla=talla)
+    if genero:
+        items_qs = items_qs.filter(genero=genero)
+    if beneficiario:
+        items_qs = items_qs.filter(pedido__nombre_completo__icontains=beneficiario)
+    if cliente_txt:
+        items_qs = items_qs.filter(pedido__cliente__nombre__icontains=cliente_txt)
+ 
+    # Normalizar para el template
+    resumen_prendas = [
+        {
+            'tipo_prenda': r['tipo_prenda'],
+            'talla':       r['talla'],
+            'genero':      r['genero'],
+            'total':       r['total'],
+            'beneficiario': r['pedido__nombre_completo'],
+            'cliente':     r['pedido__cliente__nombre'],
+            'categoria':   r['pedido__categoria'],
+            'gestion':     r['pedido__gestion'],
+        }
+        for r in items_qs
+    ]
+ 
+    # ── Opciones para los selects de filtro ──────────────────────────────
+    # Tipos de prenda — ajusta las choices a las de tu modelo
+    tipos_prenda = ItemPedidoPersonalizado._meta.get_field('tipo_prenda').choices
+ 
+    # Tallas disponibles (dinámico, solo las que existen)
+    tallas_disponibles = (
+        ItemPedidoPersonalizado.objects
+        .values_list('talla', flat=True)
+        .distinct()
+        .order_by('talla')
+    )
+ 
+    # Géneros — ajusta las choices a las de tu modelo
+    generos = ItemPedidoPersonalizado._meta.get_field('genero').choices
+ 
+    return render(request, 'pedidos_personalizados/dashboard.html', {
+        # Stats
+        'total_personas':    total_personas,
+        'total_prendas':     total_prendas,
+        'total_aportes':     total_aportes,
+        'total_saldos':      total_saldos,
+        # Tabla
+        'resumen_prendas':   resumen_prendas,
+        # Selects
+        'tipos_prenda':      tipos_prenda,
+        'tallas_disponibles': tallas_disponibles,
+        'generos':           generos,
+    })
+ 
+# ── 2. NUEVA exportar_word ───────────────────────────────────────────────────
+# Requiere: pip install python-docx
+@login_required
+def exportar_word(request):
+    """Exportar pedidos filtrados a un documento Word formateado."""
+    queryset = PedidoPersonalizado.objects.all()
     
-    total_personas = pedidos.count()
-    total_prendas = ItemPedidoPersonalizado.objects.aggregate(t=Sum('cantidad'))['t'] or 0
-    total_aportes = pedidos.aggregate(t=Sum('aporte'))['t'] or 0
-    total_saldos = pedidos.aggregate(t=Sum('saldo'))['t'] or 0
+    # Obtener parámetros de filtro (igual que en la lista)
+    tipo_prenda = request.GET.get('tipo_prenda', '').strip()
+    talla = request.GET.get('talla', '').strip()
+    genero = request.GET.get('genero', '').strip()
+    beneficiario = request.GET.get('beneficiario', '').strip()
+    cliente = request.GET.get('cliente', '').strip()
+    
+    # Aplicar filtros usando la relación 'items'
+    if tipo_prenda:
+        queryset = queryset.filter(items__tipo_prenda=tipo_prenda)
+    if talla:
+        queryset = queryset.filter(items__talla=talla)
+    if genero:
+        queryset = queryset.filter(items__genero=genero)
+    if beneficiario:
+        queryset = queryset.filter(nombre_completo__icontains=beneficiario)
+    if cliente:
+        queryset = queryset.filter(cliente_id=cliente)
+    
+    # Eliminar duplicados (un pedido puede tener múltiples items)
+    queryset = queryset.distinct()
+    
+    # Crear documento Word
+    doc = Document()
+    
+    # Título
+    title = doc.add_heading('Reporte de Pedidos Personalizados', 0)
+    title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    
+    # Subtítulo con fecha y filtros aplicados
+    from datetime import datetime
+    doc.add_paragraph(f'Generado el: {datetime.now().strftime("%d/%m/%Y %H:%M")}')
+    doc.add_paragraph(f'Total de pedidos: {queryset.count()}')
+    
+    # Mostrar filtros aplicados (opcional)
+    filtros = []
+    if tipo_prenda: filtros.append(f'Tipo: {tipo_prenda}')
+    if talla: filtros.append(f'Talla: {talla}')
+    if genero: filtros.append(f'Género: {genero}')
+    if beneficiario: filtros.append(f'Beneficiario: {beneficiario}')
+    if cliente: filtros.append(f'Cliente ID: {cliente}')
+    if filtros:
+        doc.add_paragraph('Filtros aplicados: ' + ', '.join(filtros))
+    
+    doc.add_paragraph('')
+    
+    # Tabla de pedidos (7 columnas)
+    table = doc.add_table(rows=1, cols=7)
+    table.style = 'Table Grid'
+    hdr_cells = table.rows[0].cells
+    headers = ['Cliente', 'Beneficiario', 'Prendas', 'Total Bs.', 'Aporte Bs.', 'Saldo Bs.', 'Estado Pago']
+    for i, header in enumerate(headers):
+        hdr_cells[i].text = header
+        # Poner negrita
+        for paragraph in hdr_cells[i].paragraphs:
+            for run in paragraph.runs:
+                run.font.bold = True
+    
+    for pedido in queryset:
+        # Obtener todas las prendas asociadas a este pedido mediante 'items'
+        prendas_qs = pedido.items.all()
+        prendas_desc = ', '.join([f"{p.get_tipo_prenda_display()} ({p.talla})" for p in prendas_qs])
+        
+        row_cells = table.add_row().cells
+        row_cells[0].text = pedido.cliente.nombre if pedido.cliente else '—'
+        row_cells[1].text = pedido.nombre_completo
+        row_cells[2].text = prendas_desc
+        row_cells[3].text = f"Bs. {pedido.total or 0:.2f}"
+        row_cells[4].text = f"Bs. {pedido.aporte or 0:.2f}"
+        row_cells[5].text = f"Bs. {pedido.saldo or 0:.2f}"
+        row_cells[6].text = pedido.get_estado_pago_display()
+    
+    # Preparar respuesta
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+    response['Content-Disposition'] = 'attachment; filename="pedidos_personalizados.docx"'
+    doc.save(response)
+    return response
 
-    # Resumen por categoría para gráfico
-    categorias_qs = pedidos.values('categoria').annotate(total=Count('id')).order_by('-total')[:10]
-    labels_categorias = [c['categoria'] for c in categorias_qs]
-    datos_categorias = [c['total'] for c in categorias_qs]
 
-    resumen_prendas = PedidoPersonalizado.get_resumen_prendas()
 
-    context = {
-        'total_personas': total_personas,
-        'total_prendas': total_prendas,
-        'total_aportes': total_aportes,
-        'total_saldos': total_saldos,
-        'labels_categorias': labels_categorias,
-        'datos_categorias': datos_categorias,
-        'resumen_prendas': resumen_prendas,
-    }
-    return render(request, 'pedidos_personalizados/dashboard.html', context)
+
+
 
 @login_required
 def lista_pedidos(request):
@@ -297,3 +457,294 @@ def exportar_excel(request):
     )
     response['Content-Disposition'] = 'attachment; filename="pedidos_personalizados.xlsx"'
     return response
+
+
+
+
+@login_required
+def exportar_pdf(request):
+    """
+    Exporta el resumen de prendas (con beneficiario y cliente) a PDF.
+    Aplica los mismos filtros que el dashboard:
+    tipo_prenda, talla, genero, beneficiario, cliente.
+ 
+    Requiere: pip install reportlab
+    Agregar a requirements.txt: reportlab>=4.0.0
+    """
+    import io
+    from django.http import HttpResponse
+    from reportlab.lib.pagesizes import A4, landscape
+    from reportlab.lib import colors
+    from reportlab.lib.units import cm
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.enums import TA_CENTER, TA_LEFT
+    from reportlab.platypus import (
+        SimpleDocTemplate, Table, TableStyle, Paragraph,
+        Spacer, HRFlowable
+    )
+    from reportlab.platypus import KeepTogether
+    from datetime import datetime
+ 
+    # ── Filtros (mismos parámetros GET que el dashboard) ──────────────────
+    tipo_prenda_f  = request.GET.get('tipo_prenda', '').strip()
+    talla_f        = request.GET.get('talla', '').strip()
+    genero_f       = request.GET.get('genero', '').strip()
+    beneficiario_f = request.GET.get('beneficiario', '').strip()
+    cliente_f      = request.GET.get('cliente', '').strip()
+ 
+    items_qs = (
+        ItemPedidoPersonalizado.objects
+        .select_related('pedido', 'pedido__cliente')
+        .values(
+            'tipo_prenda',
+            'talla',
+            'genero',
+            'pedido__nombre_completo',
+            'pedido__cliente__nombre',
+            'pedido__categoria',
+            'pedido__gestion',
+        )
+        .annotate(total=Sum('cantidad'))
+        .order_by('tipo_prenda', 'talla', 'genero', 'pedido__nombre_completo')
+    )
+ 
+    if tipo_prenda_f:
+        items_qs = items_qs.filter(tipo_prenda=tipo_prenda_f)
+    if talla_f:
+        items_qs = items_qs.filter(talla=talla_f)
+    if genero_f:
+        items_qs = items_qs.filter(genero=genero_f)
+    if beneficiario_f:
+        items_qs = items_qs.filter(pedido__nombre_completo__icontains=beneficiario_f)
+    if cliente_f:
+        items_qs = items_qs.filter(pedido__cliente__nombre__icontains=cliente_f)
+ 
+    # Stats globales
+    todos         = PedidoPersonalizado.objects.all()
+    total_personas = todos.count()
+    total_aportes  = todos.aggregate(t=Sum('aporte'))['t'] or 0
+    total_saldos   = todos.aggregate(t=Sum('saldo'))['t'] or 0
+    total_prendas_filtradas = sum(r['total'] for r in items_qs)
+ 
+    # ── Paleta de colores (misma del sistema dark) ─────────────────────────
+    COLOR_BG_HEADER  = colors.HexColor('#161920')   # --surface
+    COLOR_BG_ALT     = colors.HexColor('#1e222d')   # --surface2
+    COLOR_ACCENT     = colors.HexColor('#f97316')   # naranja
+    COLOR_TEXT_MAIN  = colors.HexColor('#f0f2f5')   # --text-1
+    COLOR_TEXT_MUTED = colors.HexColor('#8b91a0')   # --text-2
+    COLOR_BORDER     = colors.HexColor('#2a2f3d')
+    COLOR_WHITE      = colors.white
+ 
+    # ── Documento ─────────────────────────────────────────────────────────
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=landscape(A4),
+        leftMargin=1.5*cm, rightMargin=1.5*cm,
+        topMargin=1.5*cm,  bottomMargin=1.5*cm,
+        title='Reporte de Pedidos Personalizados',
+        author='Sistema GestPed',
+    )
+ 
+    styles = getSampleStyleSheet()
+ 
+    style_title = ParagraphStyle(
+        'CustomTitle',
+        fontName='Helvetica-Bold',
+        fontSize=18,
+        textColor=COLOR_BG_HEADER,
+        spaceAfter=4,
+        alignment=TA_LEFT,
+    )
+ 
+    style_subtitle = ParagraphStyle(
+        'CustomSub',
+        fontName='Helvetica',
+        fontSize=9,
+        textColor=COLOR_TEXT_MUTED,
+        spaceAfter=2,
+        alignment=TA_LEFT,
+    )
+ 
+    style_section = ParagraphStyle(
+        'Section',
+        fontName='Helvetica-Bold',
+        fontSize=11,
+        textColor=COLOR_BG_HEADER,
+        spaceBefore=14,
+        spaceAfter=6,
+    )
+ 
+    style_filter_label = ParagraphStyle(
+        'FilterLabel',
+        fontName='Helvetica',
+        fontSize=8,
+        textColor=COLOR_TEXT_MUTED,
+    )
+ 
+    story = []
+ 
+    # ── Encabezado ─────────────────────────────────────────────────────────
+    # Banda de color superior usando una tabla de 1 fila
+    header_data = [[
+        Paragraph('<b><font color="white" size="16">GestPed</font></b> &nbsp; '
+                  '<font color="#f97316" size="9">Reporte de Pedidos Personalizados</font>', styles['Normal']),
+        Paragraph(f'<font color="#8b91a0" size="8">{datetime.now().strftime("%d/%m/%Y %H:%M")}</font>',
+                  ParagraphStyle('R', alignment=2, fontName='Helvetica', fontSize=8,
+                                 textColor=COLOR_TEXT_MUTED)),
+    ]]
+ 
+    header_table = Table(header_data, colWidths=['*', 5*cm])
+    header_table.setStyle(TableStyle([
+        ('BACKGROUND',  (0,0), (-1,-1), COLOR_BG_HEADER),
+        ('VALIGN',      (0,0), (-1,-1), 'MIDDLE'),
+        ('TOPPADDING',  (0,0), (-1,-1), 10),
+        ('BOTTOMPADDING',(0,0),(-1,-1), 10),
+        ('LEFTPADDING', (0,0), (-1,-1), 14),
+        ('RIGHTPADDING',(-1,0),(-1,-1), 14),
+    ]))
+    story.append(header_table)
+    story.append(Spacer(1, 10))
+ 
+    # ── Tarjetas de stats ──────────────────────────────────────────────────
+    stats_data = [[
+        Paragraph(f'<b><font size="20">{total_personas}</font></b><br/>'
+                  f'<font size="8" color="#8b91a0">Beneficiarios</font>', styles['Normal']),
+        Paragraph(f'<b><font size="20">{total_prendas_filtradas}</font></b><br/>'
+                  f'<font size="8" color="#8b91a0">Prendas (filtradas)</font>', styles['Normal']),
+        Paragraph(f'<b><font size="20">Bs. {total_aportes}</font></b><br/>'
+                  f'<font size="8" color="#8b91a0">Total aportes</font>', styles['Normal']),
+        Paragraph(f'<b><font size="20" color="#ef4444">Bs. {total_saldos}</font></b><br/>'
+                  f'<font size="8" color="#8b91a0">Saldos pendientes</font>', styles['Normal']),
+    ]]
+ 
+    stats_table = Table(stats_data, colWidths=['*', '*', '*', '*'])
+    stats_table.setStyle(TableStyle([
+        ('BACKGROUND',   (0,0), (-1,-1), COLOR_BG_ALT),
+        ('BOX',          (0,0), (-1,-1), 0.5, COLOR_BORDER),
+        ('INNERGRID',    (0,0), (-1,-1), 0.5, COLOR_BORDER),
+        ('VALIGN',       (0,0), (-1,-1), 'MIDDLE'),
+        ('TOPPADDING',   (0,0), (-1,-1), 10),
+        ('BOTTOMPADDING',(0,0), (-1,-1), 10),
+        ('LEFTPADDING',  (0,0), (-1,-1), 14),
+        # Línea naranja izquierda solo en primera celda
+        ('LINEAFTER',    (0,0), (0,0),   2, COLOR_ACCENT),
+    ]))
+    story.append(stats_table)
+    story.append(Spacer(1, 12))
+ 
+    # ── Filtros activos ────────────────────────────────────────────────────
+    filtros_txt = []
+    if tipo_prenda_f:  filtros_txt.append(f'Prenda: {tipo_prenda_f}')
+    if talla_f:        filtros_txt.append(f'Talla: {talla_f}')
+    if genero_f:       filtros_txt.append(f'Género: {genero_f}')
+    if beneficiario_f: filtros_txt.append(f'Beneficiario: {beneficiario_f}')
+    if cliente_f:      filtros_txt.append(f'Cliente: {cliente_f}')
+ 
+    if filtros_txt:
+        story.append(Paragraph(
+            '<b>Filtros aplicados:</b> ' + '  ·  '.join(filtros_txt),
+            style_filter_label
+        ))
+        story.append(Spacer(1, 6))
+ 
+    # ── Tabla principal ────────────────────────────────────────────────────
+    story.append(Paragraph('Resumen de prendas para producción', style_section))
+    story.append(HRFlowable(width='100%', thickness=1, color=COLOR_ACCENT, spaceAfter=8))
+ 
+    # Cabecera de la tabla
+    col_headers = ['Prenda', 'Talla', 'Género', 'Cant.', 'Beneficiario', 'Institución', 'Categoría', 'Gestión']
+ 
+    table_data = [col_headers]
+ 
+    for r in items_qs:
+        table_data.append([
+            r['tipo_prenda'].title(),
+            r['talla'],
+            r['genero'].title(),
+            str(r['total']),
+            r['pedido__nombre_completo'],
+            r['pedido__cliente__nombre'],
+            r['pedido__categoria'] or '—',
+            str(r['pedido__gestion']),
+        ])
+ 
+    if len(table_data) == 1:
+        table_data.append(['Sin resultados', '', '', '', '', '', '', ''])
+ 
+    # Anchos de columna (landscape A4 ≈ 27 cm útiles)
+    col_widths = [3*cm, 1.6*cm, 2*cm, 1.5*cm, 5.5*cm, 5.5*cm, 3.5*cm, 2*cm]
+ 
+    main_table = Table(table_data, colWidths=col_widths, repeatRows=1)
+ 
+    # Estilos de la tabla
+    ts = TableStyle([
+        # Cabecera
+        ('BACKGROUND',    (0,0),  (-1,0),  COLOR_BG_HEADER),
+        ('TEXTCOLOR',     (0,0),  (-1,0),  COLOR_TEXT_MAIN),
+        ('FONTNAME',      (0,0),  (-1,0),  'Helvetica-Bold'),
+        ('FONTSIZE',      (0,0),  (-1,0),  8),
+        ('TOPPADDING',    (0,0),  (-1,0),  8),
+        ('BOTTOMPADDING', (0,0),  (-1,0),  8),
+        ('LEFTPADDING',   (0,0),  (-1,0),  8),
+        ('ALIGN',         (3,0),  (3,0),   'CENTER'),  # Cant. centrado
+        # Línea inferior de cabecera en naranja
+        ('LINEBELOW',     (0,0),  (-1,0),  2, COLOR_ACCENT),
+ 
+        # Filas de datos
+        ('FONTNAME',      (0,1),  (-1,-1), 'Helvetica'),
+        ('FONTSIZE',      (0,1),  (-1,-1), 8),
+        ('TOPPADDING',    (0,1),  (-1,-1), 6),
+        ('BOTTOMPADDING', (0,1),  (-1,-1), 6),
+        ('LEFTPADDING',   (0,1),  (-1,-1), 8),
+        ('VALIGN',        (0,0),  (-1,-1), 'MIDDLE'),
+        ('TEXTCOLOR',     (0,1),  (-1,-1), COLOR_BG_HEADER),
+        ('ALIGN',         (3,1),  (3,-1),  'CENTER'),  # Cant. centrado
+ 
+        # Cantidad en naranja y bold
+        ('TEXTCOLOR',     (3,1),  (3,-1),  COLOR_ACCENT),
+        ('FONTNAME',      (3,1),  (3,-1),  'Helvetica-Bold'),
+        ('FONTSIZE',      (3,1),  (3,-1),  10),
+ 
+        # Grid
+        ('LINEBELOW',     (0,1),  (-1,-2), 0.5, COLOR_BORDER),
+        ('LINEBELOW',     (0,-1), (-1,-1), 0.5, COLOR_BORDER),
+        ('BOX',           (0,0),  (-1,-1), 0.5, COLOR_BORDER),
+    ])
+ 
+    # Filas alternas
+    for i in range(1, len(table_data)):
+        if i % 2 == 0:
+            ts.add('BACKGROUND', (0,i), (-1,i), colors.HexColor('#f8f9fa'))
+        else:
+            ts.add('BACKGROUND', (0,i), (-1,i), colors.white)
+ 
+    main_table.setStyle(ts)
+    story.append(main_table)
+ 
+    # ── Pie de página ──────────────────────────────────────────────────────
+    story.append(Spacer(1, 16))
+    footer_data = [[
+        Paragraph(f'<font size="8" color="#8b91a0">Total de registros: <b>{len(table_data)-1}</b></font>',
+                  styles['Normal']),
+        Paragraph(f'<font size="8" color="#8b91a0">Sistema GestPed · Ropa deportiva para colegios</font>',
+                  ParagraphStyle('FooterR', alignment=2, fontName='Helvetica',
+                                 fontSize=8, textColor=COLOR_TEXT_MUTED)),
+    ]]
+    footer_table = Table(footer_data, colWidths=['*', '*'])
+    footer_table.setStyle(TableStyle([
+        ('LINEABOVE',    (0,0), (-1,0), 0.5, COLOR_BORDER),
+        ('TOPPADDING',   (0,0), (-1,-1), 6),
+        ('LEFTPADDING',  (0,0), (0,0),  0),
+        ('RIGHTPADDING', (-1,0),(-1,0), 0),
+    ]))
+    story.append(footer_table)
+ 
+    # ── Build y respuesta ──────────────────────────────────────────────────
+    doc.build(story)
+    buffer.seek(0)
+ 
+    response = HttpResponse(buffer.read(), content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="pedidos_personalizados.pdf"'
+    return response
+

@@ -13,4 +13,6 @@ urlpatterns = [
     path('items/<int:item_pk>/eliminar/', views.eliminar_item, name='eliminar_item'),
     path('importar/', views.importar_excel, name='importar'),
     path('exportar/', views.exportar_excel, name='exportar'),
+    path('exportar/word/', views.exportar_word, name='exportar_word'),
+    path('exportar/pdf/', views.exportar_pdf, name='exportar_pdf'),
 ]

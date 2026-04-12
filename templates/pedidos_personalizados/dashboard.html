@@ -12,10 +12,7 @@
         margin-bottom: 24px;
     }
 
-    .stat-card-money .stat-value {
-        font-size: 22px;
-        letter-spacing: -0.5px;
-    }
+    .stat-card-money .stat-value { font-size: 22px; letter-spacing: -0.5px; }
 
     .stat-prefix {
         font-family: var(--font-body);
@@ -25,14 +22,35 @@
         margin-right: 2px;
     }
 
-    /* ── Layout principal ── */
-    .dash-grid {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 20px;
+    /* ── Filtros ── */
+    .filters-panel {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 18px 20px;
+        margin-bottom: 20px;
     }
 
-    /* ── Panel ── */
+    .filters-form {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr) auto;
+        gap: 10px;
+        align-items: end;
+    }
+
+    .filter-field { display: flex; flex-direction: column; gap: 6px; }
+
+    .filter-field label {
+        font-size: 10.5px;
+        font-weight: 500;
+        color: var(--text-3);
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+    }
+
+    .filter-actions { display: flex; gap: 8px; align-items: flex-end; }
+
+    /* ── Panel / Tabla ── */
     .panel {
         background: var(--surface);
         border: 1px solid var(--border);
@@ -46,6 +64,8 @@
         justify-content: space-between;
         padding: 15px 20px;
         border-bottom: 1px solid var(--border);
+        flex-wrap: wrap;
+        gap: 10px;
     }
 
     .panel-title {
@@ -58,31 +78,80 @@
         color: var(--text-1);
     }
 
-    .panel-title svg {
-        width: 15px; height: 15px;
-        stroke: var(--text-3);
-        fill: none;
-        stroke-width: 1.8;
+    .panel-title svg { width: 15px; height: 15px; stroke: var(--text-3); fill: none; stroke-width: 1.8; }
+
+    .row-count {
+        font-size: 12px;
+        color: var(--text-3);
     }
 
-    /* tabla */
+    .row-count strong { color: var(--text-2); }
+
+    /* Tabla */
     .panel table thead th { padding: 10px 16px; font-size: 10.5px; }
     .panel table tbody td { padding: 11px 16px; font-size: 13px; }
 
+    /* Beneficiario + cliente */
+    .bene-name  { font-weight: 600; color: var(--text-1); font-size: 13px; }
+    .bene-sub   { font-size: 11.5px; color: var(--text-3); margin-top: 2px; }
+
+    /* Chips de talla/género */
+    .chip {
+        display: inline-flex;
+        align-items: center;
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 2px 9px;
+        font-size: 11.5px;
+        color: var(--text-2);
+        white-space: nowrap;
+    }
+
+    /* Cantidad destacada */
+    .qty-cell {
+        font-family: var(--font-display);
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--text-1);
+        letter-spacing: -0.3px;
+    }
+
+    /* Prenda badge */
+    .prenda-badge {
+        display: inline-flex;
+        align-items: center;
+        background: var(--accent-muted);
+        border: 1px solid rgba(249,115,22,0.2);
+        border-radius: var(--radius-xs);
+        padding: 3px 10px;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--accent);
+    }
+
+    /* Empty */
     .empty-row td {
         text-align: center;
-        padding: 40px 16px !important;
+        padding: 50px 16px !important;
         color: var(--text-3);
         font-size: 13px;
     }
 
     /* ── Responsive ── */
-    @media (max-width: 900px) {
-        .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    @media (max-width: 1100px) {
+        .stats-grid   { grid-template-columns: repeat(2, 1fr); }
+        .filters-form { grid-template-columns: repeat(3, 1fr); }
+        .filter-actions { grid-column: 1 / -1; }
     }
 
-    @media (max-width: 480px) {
-        .stats-grid { grid-template-columns: 1fr; }
+    @media (max-width: 600px) {
+        .stats-grid   { grid-template-columns: 1fr; }
+        .filters-form { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 420px) {
+        .filters-form { grid-template-columns: 1fr; }
     }
 </style>
 {% endblock %}
@@ -93,7 +162,7 @@
 <div class="page-header">
     <div class="page-title">
         <h1>Pedidos personalizados</h1>
-        <p>Dashboard de resumen y producción</p>
+        <p>Resumen de prendas por beneficiario para producción</p>
     </div>
     <div class="page-actions">
         <a href="{% url 'pedidos_personalizados:lista' %}" class="btn btn-ghost">
@@ -111,78 +180,180 @@
      STATS
 ══════════════════════════════════════ -->
 <div class="stats-grid">
-
     <div class="stat-card info">
         <div class="stat-label">Total personas</div>
         <div class="stat-value">{{ total_personas }}</div>
         <div class="stat-sub">Beneficiarios registrados</div>
     </div>
-
     <div class="stat-card success">
         <div class="stat-label">Total prendas</div>
         <div class="stat-value">{{ total_prendas }}</div>
         <div class="stat-sub">Unidades en sistema</div>
     </div>
-
     <div class="stat-card stat-card-money">
         <div class="stat-label">Total aportes</div>
-        <div class="stat-value">
-            <span class="stat-prefix">Bs.</span>{{ total_aportes|default:0 }}
-        </div>
+        <div class="stat-value"><span class="stat-prefix">Bs.</span>{{ total_aportes|default:0 }}</div>
         <div class="stat-sub">Pagos recibidos</div>
     </div>
-
     <div class="stat-card danger stat-card-money">
         <div class="stat-label">Saldos pendientes</div>
-        <div class="stat-value">
-            <span class="stat-prefix">Bs.</span>{{ total_saldos|default:0 }}
-        </div>
+        <div class="stat-value"><span class="stat-prefix">Bs.</span>{{ total_saldos|default:0 }}</div>
         <div class="stat-sub">Por cobrar</div>
     </div>
-
 </div>
 
 <!-- ══════════════════════════════════════
-     RESUMEN PRODUCCIÓN
+     FILTROS
 ══════════════════════════════════════ -->
-<div class="dash-grid">
-    <div class="panel">
-        <div class="panel-header">
-            <span class="panel-title">
-                <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
-                Resumen para producción
-            </span>
-            <span class="badge badge-accent">Registrados</span>
+<div class="filters-panel">
+    <form method="get" id="filterForm">
+        <div class="filters-form">
+
+            <div class="filter-field">
+                <label>Tipo de prenda</label>
+                <select name="tipo_prenda" class="form-select">
+                    <option value="">Todas las prendas</option>
+                    {% for value, label in tipos_prenda %}
+                    <option value="{{ value }}" {% if request.GET.tipo_prenda == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="filter-field">
+                <label>Talla</label>
+                <select name="talla" class="form-select">
+                    <option value="">Todas las tallas</option>
+                    {% for t in tallas_disponibles %}
+                    <option value="{{ t }}" {% if request.GET.talla == t %}selected{% endif %}>{{ t }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="filter-field">
+                <label>Género</label>
+                <select name="genero" class="form-select">
+                    <option value="">Todos los géneros</option>
+                    {% for value, label in generos %}
+                    <option value="{{ value }}" {% if request.GET.genero == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="filter-field">
+                <label>Beneficiario</label>
+                <input type="text" name="beneficiario" class="form-control"
+                       placeholder="Buscar nombre…" value="{{ request.GET.beneficiario }}">
+            </div>
+
+            <div class="filter-field">
+                <label>Institución / Cliente</label>
+                <input type="text" name="cliente" class="form-control"
+                       placeholder="Buscar institución…" value="{{ request.GET.cliente }}">
+            </div>
+
+            <div class="filter-actions">
+                <button type="submit" class="btn btn-primary">
+                    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    Filtrar
+                </button>
+                <a href="{% url 'pedidos_personalizados:dashboard' %}" class="btn btn-ghost">
+                    <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    Limpiar
+                </a>
+            </div>
+
         </div>
 
-        <div class="table-wrap-scroll">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Prenda</th>
-                        <th>Talla</th>
-                        <th>Género</th>
-                        <th>Cantidad</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for r in resumen_prendas %}
-                    <tr>
-                        <td data-label="Prenda">{{ r.tipo_prenda|title }}</td>
-                        <td data-label="Talla">{{ r.talla }}</td>
-                        <td data-label="Género">{{ r.genero|title }}</td>
-                        <td data-label="Cantidad">
-                            <span class="badge badge-default">{{ r.total }}</span>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr class="empty-row">
-                        <td colspan="4">No hay prendas registradas para producir.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <!-- Exportaciones (preservan el filtro activo) -->
+        <div style="display:flex; gap:8px; margin-top:12px; padding-top:12px; border-top:1px solid var(--border); flex-wrap:wrap;">
+            <button type="submit" formaction="{% url 'pedidos_personalizados:exportar' %}" class="btn btn-success btn-sm">
+                <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Exportar Excel
+            </button>
+            <button type="submit" formaction="{% url 'pedidos_personalizados:exportar_word' %}" class="btn btn-ghost btn-sm">
+                <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                Exportar Word
+            </button>
+            <span style="margin-left:auto; font-size:12px; color:var(--text-3); align-self:center;">
+                Exporta con los filtros activos
+            </span>
         </div>
+
+<button type="submit"
+                    formaction="{% url 'pedidos_personalizados:exportar_pdf' %}"
+                    class="btn btn-ghost btn-sm"
+                    style="border-color:rgba(239,68,68,0.25); color:#f87171;">
+                <svg viewBox="0 0 24 24" style="stroke:#f87171;">
+                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <path d="M9 13h6M9 17h6M9 9h1"/>
+                </svg>
+                Exportar PDF
+    </button>
+
+    </form>
+     
+</div>
+
+<!-- ══════════════════════════════════════
+     RESUMEN PRENDAS CON BENEFICIARIO
+══════════════════════════════════════ -->
+<div class="panel">
+    <div class="panel-header">
+        <span class="panel-title">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+            Resumen para producción
+        </span>
+        <span class="row-count">
+            <strong>{{ resumen_prendas|length }}</strong> registros
+            {% if request.GET.tipo_prenda or request.GET.talla or request.GET.genero or request.GET.beneficiario or request.GET.cliente %}
+            <span class="badge badge-accent" style="margin-left:6px;">Filtrado</span>
+            {% endif %}
+        </span>
+    </div>
+
+    <div class="table-wrap-scroll">
+        <table>
+            <thead>
+                <tr>
+                    <th>Prenda</th>
+                    <th>Talla</th>
+                    <th>Género</th>
+                    <th>Cantidad</th>
+                    <th>Beneficiario</th>
+                    <th>Institución / Cat.</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in resumen_prendas %}
+                <tr>
+                    <td data-label="Prenda">
+                        <span class="prenda-badge">{{ r.tipo_prenda|title }}</span>
+                    </td>
+                    <td data-label="Talla">
+                        <span class="chip">{{ r.talla }}</span>
+                    </td>
+                    <td data-label="Género">
+                        <span class="chip">{{ r.genero|title }}</span>
+                    </td>
+                    <td data-label="Cantidad">
+                        <span class="qty-cell">{{ r.total }}</span>
+                    </td>
+                    <td data-label="Beneficiario">
+                        <div class="bene-name">{{ r.beneficiario }}</div>
+                    </td>
+                    <td data-label="Institución">
+                        <div class="inst-main" style="color:var(--text-1);font-size:13px;">{{ r.cliente }}</div>
+                        <div class="bene-sub">{{ r.categoria }} · {{ r.gestion }}</div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr class="empty-row">
+                    <td colspan="6">No hay prendas registradas con los filtros aplicados.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
 
