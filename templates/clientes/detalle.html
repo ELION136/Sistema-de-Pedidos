@@ -1,151 +1,282 @@
 {% extends 'base/base.html' %}
+{% load static %}
 
 {% block title %}{{ cliente.nombre }} - Cliente{% endblock %}
 
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/forms.css' %}">
+{% endblock %}
+
 {% block content %}
+
+<!-- ── Page header ── -->
 <div class="page-header">
-    <div class="d-flex justify-content-between align-items-start">
-        <div>
-            <h1><i class="bi bi-building me-3"></i>{{ cliente.nombre }}</h1>
-            <p class="text-muted">{{ cliente.get_tipo_display }}</p>
-        </div>
-        <div>
-            <a href="{% url 'clientes:editar' cliente.pk %}" class="btn btn-primary">
-                <i class="bi bi-pencil me-2"></i>Editar
-            </a>
-        </div>
+    <div class="page-title">
+        <h1>
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none"
+                 stroke="currentColor" stroke-width="1.8"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4-4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+            </svg>
+            {{ cliente.nombre }}
+        </h1>
+        <p>{{ cliente.get_tipo_display }}</p>
+    </div>
+    <div class="page-actions">
+        <a href="{% url 'clientes:editar' cliente.pk %}" class="btn btn-primary">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none"
+                 stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+            Editar
+        </a>
     </div>
 </div>
 
-<div class="row">
-    <!-- Información Principal -->
-    <div class="col-md-8">
-        <div class="card mb-4">
-            <div class="card-header bg-white">
-                <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Información del Cliente</h5>
+<!-- ── Cuerpo: main 2fr + aside 1fr ── -->
+<div class="form-layout">
+
+    <!-- Columna principal -->
+    <div class="form-main">
+
+        <!-- Información del cliente -->
+        <div class="card" style="margin-bottom: 1.25rem;">
+            <div class="card-header">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none"
+                     stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="8" x2="12" y2="12"/>
+                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                Información del cliente
             </div>
             <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <p><strong><i class="bi bi-person me-2"></i>Contacto:</strong><br>
-                        {{ cliente.contacto_nombre|default:"No especificado" }}</p>
-                        
-                        <p><strong><i class="bi bi-briefcase me-2"></i>Cargo:</strong><br>
-                        {{ cliente.contacto_cargo|default:"No especificado" }}</p>
-                        
-                        <p><strong><i class="bi bi-telephone me-2"></i>Teléfono:</strong><br>
-                        {{ cliente.telefono|default:"No especificado" }}</p>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none"
+                                 stroke="currentColor" stroke-width="2"
+                                 stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4-4v2"/>
+                                <circle cx="12" cy="7" r="4"/>
+                            </svg>
+                            Contacto
+                        </span>
+                        <span class="detail-value">{{ cliente.contacto_nombre|default:"No especificado" }}</span>
                     </div>
-                    <div class="col-md-6">
-                        <p><strong><i class="bi bi-envelope me-2"></i>Email:</strong><br>
-                        {{ cliente.email|default:"No especificado" }}</p>
-                        
-                        <p><strong><i class="bi bi-geo-alt me-2"></i>Dirección:</strong><br>
-                        {{ cliente.direccion|default:"No especificada" }}</p>
-                        
-                        <p><strong><i class="bi bi-building me-2"></i>Ciudad:</strong><br>
-                        {{ cliente.ciudad|default:"No especificada" }}</p>
+                    <div class="detail-item">
+                        <span class="detail-label">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none"
+                                 stroke="currentColor" stroke-width="2"
+                                 stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="2" y="7" width="20" height="14" rx="2"/>
+                                <path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/>
+                            </svg>
+                            Cargo
+                        </span>
+                        <span class="detail-value">{{ cliente.contacto_cargo|default:"No especificado" }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none"
+                                 stroke="currentColor" stroke-width="2"
+                                 stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012 .99h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 8.86a16 16 0 006.05 6.05l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>
+                            </svg>
+                            Teléfono
+                        </span>
+                        <span class="detail-value">{{ cliente.telefono|default:"No especificado" }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none"
+                                 stroke="currentColor" stroke-width="2"
+                                 stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                                <polyline points="22,6 12,13 2,6"/>
+                            </svg>
+                            Email
+                        </span>
+                        <span class="detail-value">{{ cliente.email|default:"No especificado" }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none"
+                                 stroke="currentColor" stroke-width="2"
+                                 stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/>
+                                <circle cx="12" cy="10" r="3"/>
+                            </svg>
+                            Dirección
+                        </span>
+                        <span class="detail-value">{{ cliente.direccion|default:"No especificada" }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none"
+                                 stroke="currentColor" stroke-width="2"
+                                 stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+                                <polyline points="9 22 9 12 15 12 15 22"/>
+                            </svg>
+                            Ciudad
+                        </span>
+                        <span class="detail-value">{{ cliente.ciudad|default:"No especificada" }}</span>
                     </div>
                 </div>
-                
+
                 {% if cliente.notas %}
-                <hr>
-                <p><strong><i class="bi bi-sticky me-2"></i>Notas:</strong></p>
-                <p class="text-muted">{{ cliente.notas|linebreaks }}</p>
+                <hr class="aside-divider">
+                <p class="aside-subtitle">Notas</p>
+                <p class="aside-description">{{ cliente.notas|linebreaks }}</p>
                 {% endif %}
             </div>
         </div>
-        
-        <!-- Últimos Pedidos -->
+
+        <!-- Últimos pedidos -->
         <div class="card">
-            <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="bi bi-cart3 me-2"></i>Últimos Pedidos</h5>
-                <a href="{% url 'pedidos:crear' %}?cliente={{ cliente.pk }}" class="btn btn-sm btn-primary">
-                    <i class="bi bi-plus-circle me-1"></i>Nuevo Pedido
+            <div class="card-header" style="justify-content: space-between;">
+                <span style="display:flex; align-items:center; gap:8px;">
+                    <svg viewBox="0 0 24 24" width="15" height="15" fill="none"
+                         stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                        <path d="M1 1h4l2.68 13.39a2 2 0 001.99 1.61h9.66a2 2 0 001.98-1.69L23 6H6"/>
+                    </svg>
+                    Últimos pedidos
+                </span>
+                <a href="{% url 'pedidos:crear' %}?cliente={{ cliente.pk }}" class="btn btn-primary" style="padding: 5px 12px; font-size: 0.8rem;">
+                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none"
+                         stroke="currentColor" stroke-width="2.5"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"/>
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                    Nuevo pedido
                 </a>
             </div>
-            <div class="card-body p-0">
-                {% if pedidos %}
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead>
-                                <tr>
-                                    <th>Código</th>
-                                    <th>Gestión</th>
-                                    <th>Estado</th>
-                                    <th>Total Prendas</th>
-                                    <th>Fecha</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for pedido in pedidos %}
-                                <tr>
-                                    <td>
-                                        <a href="{% url 'pedidos:detalle' pedido.pk %}">
-                                            {{ pedido.codigo }}
-                                        </a>
-                                    </td>
-                                    <td>{{ pedido.gestion }}</td>
-                                    <td>
-                                        <span class="badge bg-{% if pedido.estado == 'pendiente' %}warning{% elif pedido.estado == 'en_proceso' %}info{% elif pedido.estado == 'completado' %}success{% else %}secondary{% endif %}">
-                                            {{ pedido.get_estado_display }}
-                                        </span>
-                                    </td>
-                                    <td>{{ pedido.get_total_prendas }}</td>
-                                    <td>{{ pedido.creado_en|date:"d/m/Y" }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                {% else %}
-                    <div class="empty-state">
-                        <i class="bi bi-cart"></i>
-                        <p>No hay pedidos registrados</p>
-                    </div>
-                {% endif %}
+
+            {% if pedidos %}
+            <div class="table-wrap">
+                <table class="detail-table">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Gestión</th>
+                            <th>Estado</th>
+                            <th>Prendas</th>
+                            <th>Fecha</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pedido in pedidos %}
+                        <tr>
+                            <td>
+                                <a class="table-link" href="{% url 'pedidos:detalle' pedido.pk %}">
+                                    {{ pedido.codigo }}
+                                </a>
+                            </td>
+                            <td>{{ pedido.gestion }}</td>
+                            <td>
+                                {% if pedido.estado == 'pendiente' %}
+                                    <span class="badge badge-warning">{{ pedido.get_estado_display }}</span>
+                                {% elif pedido.estado == 'en_proceso' %}
+                                    <span class="badge badge-info">{{ pedido.get_estado_display }}</span>
+                                {% elif pedido.estado == 'completado' %}
+                                    <span class="badge badge-success">{{ pedido.get_estado_display }}</span>
+                                {% elif pedido.estado == 'entregado' %}
+                                    <span class="badge badge-accent">{{ pedido.get_estado_display }}</span>
+                                {% else %}
+                                    <span class="badge badge-default">{{ pedido.get_estado_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ pedido.get_total_prendas }}</td>
+                            <td>{{ pedido.creado_en|date:"d/m/Y" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
+            {% else %}
+            <div class="empty-state-inline">
+                <svg viewBox="0 0 24 24" width="28" height="28" fill="none"
+                     stroke="currentColor" stroke-width="1.5"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                    <path d="M1 1h4l2.68 13.39a2 2 0 001.99 1.61h9.66a2 2 0 001.98-1.69L23 6H6"/>
+                </svg>
+                <p>No hay pedidos registrados</p>
+            </div>
+            {% endif %}
         </div>
+
     </div>
-    
-    <!-- Estadísticas -->
-    <div class="col-md-4">
-        <div class="card mb-4">
-            <div class="card-header bg-white">
-                <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>Estadísticas</h5>
+
+    <!-- Columna lateral -->
+    <div class="form-aside">
+
+        <!-- Estadísticas -->
+        <div class="card" style="margin-bottom: 1.25rem;">
+            <div class="card-header">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none"
+                     stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="20" x2="18" y2="10"/>
+                    <line x1="12" y1="20" x2="12" y2="4"/>
+                    <line x1="6" y1="20" x2="6" y2="14"/>
+                </svg>
+                Estadísticas
             </div>
             <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <span class="text-muted">Total de Pedidos</span>
-                    <span class="badge bg-primary fs-6">{{ total_pedidos }}</span>
+                <div class="stat-row">
+                    <span class="stat-label">Total de pedidos</span>
+                    <span class="stat-value">{{ total_pedidos }}</span>
                 </div>
-                <div class="d-flex justify-content-between align-items-center">
-                    <span class="text-muted">Pedidos Activos</span>
-                    <span class="badge bg-success fs-6">{{ pedidos_activos }}</span>
+                <div class="stat-row">
+                    <span class="stat-label">Pedidos activos</span>
+                    <span class="stat-value stat-value--success">{{ pedidos_activos }}</span>
                 </div>
             </div>
         </div>
-        
+
+        <!-- Información de registro -->
         <div class="card">
-            <div class="card-header bg-white">
-                <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Información</h5>
+            <div class="card-header">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none"
+                     stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="12 6 12 12 16 14"/>
+                </svg>
+                Información
             </div>
             <div class="card-body">
-                <p class="mb-2"><strong>Registrado:</strong><br>
-                <span class="text-muted">{{ cliente.creado_en|date:"d/m/Y H:i" }}</span></p>
-                
-                <p class="mb-2"><strong>Última modificación:</strong><br>
-                <span class="text-muted">{{ cliente.modificado_en|date:"d/m/Y H:i" }}</span></p>
-                
-                <p class="mb-0"><strong>Estado:</strong><br>
-                {% if cliente.activo %}
-                    <span class="badge bg-success">Activo</span>
-                {% else %}
-                    <span class="badge bg-secondary">Inactivo</span>
-                {% endif %}
-                </p>
+                <ul class="aside-list">
+                    <li style="flex-direction: column; align-items: flex-start; gap: 2px;">
+                        <span class="aside-subtitle" style="margin:0;">Registrado</span>
+                        <span>{{ cliente.creado_en|date:"d/m/Y H:i" }}</span>
+                    </li>
+                    <li style="flex-direction: column; align-items: flex-start; gap: 2px;">
+                        <span class="aside-subtitle" style="margin:0;">Última modificación</span>
+                        <span>{{ cliente.modificado_en|date:"d/m/Y H:i" }}</span>
+                    </li>
+                    <li style="flex-direction: column; align-items: flex-start; gap: 2px;">
+                        <span class="aside-subtitle" style="margin:0;">Estado</span>
+                        {% if cliente.activo %}
+                            <span class="badge badge-success">Activo</span>
+                        {% else %}
+                            <span class="badge badge-default">Inactivo</span>
+                        {% endif %}
+                    </li>
+                </ul>
             </div>
         </div>
+
     </div>
 </div>
+
 {% endblock %}

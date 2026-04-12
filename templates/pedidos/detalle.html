@@ -1,199 +1,222 @@
 {% extends 'base/base.html' %}
+{% load static %}
 
 {% block title %}{{ pedido.codigo }} - Pedido{% endblock %}
 
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/pedidos.css' %}">
+{% endblock %}
+
 {% block content %}
+
+<!-- ── Page header ── -->
 <div class="page-header">
-    <div class="d-flex justify-content-between align-items-start">
-        <div>
-            <h1><i class="bi bi-cart3 me-3"></i>{{ pedido.codigo }}</h1>
-            <p class="text-muted">
-                {{ pedido.cliente.nombre }} | Gestión {{ pedido.gestion }}
-            </p>
-        </div>
-        <div class="action-buttons">
-            <a href="{% url 'pedidos:agregar_items' pedido.pk %}" class="btn btn-primary">
-                <i class="bi bi-plus-circle me-2"></i>Agregar Ítems
-            </a>
-            <a href="{% url 'pedidos:importar_excel' pedido.pk %}" class="btn btn-success">
-                <i class="bi bi-file-earmark-excel me-2"></i>Importar Excel
-            </a>
-            <a href="{% url 'pedidos:resumen_produccion' pedido.pk %}" class="btn btn-info text-white">
-                <i class="bi bi-gear me-2"></i>Resumen Producción
-            </a>
-            <a href="{% url 'pedidos:editar' pedido.pk %}" class="btn btn-outline-primary">
-                <i class="bi bi-pencil me-2"></i>Editar
-            </a>
-        </div>
+    <div class="page-title">
+        <h1>
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none"
+                 stroke="currentColor" stroke-width="1.8"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                <path d="M1 1h4l2.68 13.39a2 2 0 001.99 1.61h9.66a2 2 0 001.98-1.69L23 6H6"/>
+            </svg>
+            {{ pedido.codigo }}
+        </h1>
+        <p>{{ pedido.cliente.nombre }} &middot; Gestión {{ pedido.gestion }}</p>
+    </div>
+    <div class="page-actions header-actions">
+        <a href="{% url 'pedidos:agregar_items' pedido.pk %}" class="btn btn-primary">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Agregar ítems
+        </a>
+        <a href="{% url 'pedidos:importar_excel' pedido.pk %}" class="btn btn-secondary">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+            Importar Excel
+        </a>
+        <a href="{% url 'pedidos:resumen_produccion' pedido.pk %}" class="btn btn-secondary">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg>
+            Resumen producción
+        </a>
+        <a href="{% url 'pedidos:editar' pedido.pk %}" class="btn btn-secondary">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            Editar
+        </a>
     </div>
 </div>
 
-<div class="row">
-    <!-- Información del Pedido -->
-    <div class="col-md-4">
-        <div class="card mb-4">
-            <div class="card-header bg-white">
-                <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Información</h5>
+<!-- ── aside 1fr + main 2fr (invertido: info a la izquierda) ── -->
+<div class="form-layout form-layout--reverse">
+
+    <!-- Columna lateral: info + resumen prenda -->
+    <div class="form-aside">
+
+        <!-- Info del pedido -->
+        <div class="card" style="margin-bottom:1.25rem;">
+            <div class="card-header">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                Información
             </div>
-            <div class="card-body">
-                <table class="table table-borderless">
+            <div class="card-body" style="padding:0;">
+                <table class="info-table">
                     <tr>
-                        <td class="text-muted">Cliente:</td>
-                        <td class="text-end fw-bold">
-                            <a href="{% url 'clientes:detalle' pedido.cliente.pk %}">
-                                {{ pedido.cliente.nombre }}
-                            </a>
+                        <td class="info-label">Cliente</td>
+                        <td class="info-val">
+                            <a class="table-link" href="{% url 'clientes:detalle' pedido.cliente.pk %}">{{ pedido.cliente.nombre }}</a>
                         </td>
                     </tr>
                     <tr>
-                        <td class="text-muted">Gestión:</td>
-                        <td class="text-end">{{ pedido.gestion }}</td>
+                        <td class="info-label">Gestión</td>
+                        <td class="info-val">{{ pedido.gestion }}</td>
                     </tr>
                     <tr>
-                        <td class="text-muted">Tipo:</td>
-                        <td class="text-end">{{ pedido.get_tipo_pedido_display }}</td>
+                        <td class="info-label">Tipo</td>
+                        <td class="info-val">{{ pedido.get_tipo_pedido_display }}</td>
                     </tr>
                     <tr>
-                        <td class="text-muted">Estado:</td>
-                        <td class="text-end">
-                            <span class="badge bg-{% if pedido.estado == 'pendiente' %}warning{% elif pedido.estado == 'en_proceso' %}info{% elif pedido.estado == 'completado' %}success{% elif pedido.estado == 'entregado' %}primary{% else %}secondary{% endif %}">
-                                {{ pedido.get_estado_display }}
-                            </span>
+                        <td class="info-label">Estado</td>
+                        <td class="info-val">
+                            {% if pedido.estado == 'pendiente' %}<span class="badge badge-warning">{{ pedido.get_estado_display }}</span>
+                            {% elif pedido.estado == 'en_proceso' %}<span class="badge badge-info">{{ pedido.get_estado_display }}</span>
+                            {% elif pedido.estado == 'completado' %}<span class="badge badge-success">{{ pedido.get_estado_display }}</span>
+                            {% elif pedido.estado == 'entregado' %}<span class="badge badge-accent">{{ pedido.get_estado_display }}</span>
+                            {% else %}<span class="badge badge-default">{{ pedido.get_estado_display }}</span>{% endif %}
                         </td>
                     </tr>
                     <tr>
-                        <td class="text-muted">Fecha Entrega:</td>
-                        <td class="text-end">
-                            {% if pedido.fecha_entrega %}
-                                {{ pedido.fecha_entrega|date:"d/m/Y" }}
-                            {% else %}
-                                <span class="text-muted">-</span>
-                            {% endif %}
+                        <td class="info-label">Entrega</td>
+                        <td class="info-val">
+                            {% if pedido.fecha_entrega %}{{ pedido.fecha_entrega|date:"d/m/Y" }}{% else %}<span style="opacity:.4;">—</span>{% endif %}
                         </td>
                     </tr>
                     <tr>
-                        <td class="text-muted">Total Prendas:</td>
-                        <td class="text-end fw-bold text-primary fs-5">{{ total_prendas }}</td>
+                        <td class="info-label">Total prendas</td>
+                        <td class="info-val info-val--highlight">{{ total_prendas }}</td>
                     </tr>
                 </table>
-                
                 {% if pedido.notas %}
-                <hr>
-                <p class="text-muted mb-1"><strong>Notas:</strong></p>
-                <p>{{ pedido.notas|linebreaks }}</p>
+                <div style="padding:1rem 1.25rem; border-top:0.5px solid rgba(0,0,0,0.07);">
+                    <p class="aside-subtitle">Notas</p>
+                    <p class="aside-description" style="margin:0;">{{ pedido.notas|linebreaks }}</p>
+                </div>
                 {% endif %}
             </div>
         </div>
-        
-        <!-- Resumen por Prenda -->
+
+        <!-- Resumen por prenda -->
         <div class="card">
-            <div class="card-header bg-white">
-                <h5 class="mb-0"><i class="bi bi-pie-chart me-2"></i>Resumen por Prenda</h5>
+            <div class="card-header">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 118 2.83"/><path d="M22 12A10 10 0 0012 2v10z"/></svg>
+                Resumen por prenda
             </div>
-            <div class="card-body">
+            <div class="card-body" style="padding:0;">
                 {% if items_por_prenda %}
-                    <table class="table table-sm">
-                        {% for item in items_por_prenda %}
-                        <tr>
-                            <td>{{ item.get_tipo_prenda_display }}</td>
-                            <td class="text-end fw-bold">{{ item.total }}</td>
-                        </tr>
-                        {% endfor %}
-                    </table>
+                <table class="info-table">
+                    {% for item in items_por_prenda %}
+                    <tr>
+                        <td class="info-label">{{ item.get_tipo_prenda_display }}</td>
+                        <td class="info-val info-val--highlight">{{ item.total }}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
                 {% else %}
-                    <p class="text-muted text-center mb-0">No hay ítems registrados</p>
+                <div class="empty-state-inline">
+                    <p>Sin ítems registrados</p>
+                </div>
                 {% endif %}
             </div>
         </div>
+
     </div>
-    
-    <!-- Ítems del Pedido -->
-    <div class="col-md-8">
+
+    <!-- Columna principal: conjuntos + ítems -->
+    <div class="form-main">
+
         <!-- Conjuntos -->
         {% if conjuntos %}
-        <div class="card mb-4">
-            <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="bi bi-collection me-2"></i>Conjuntos Registrados</h5>
-                <span class="badge bg-info">{{ conjuntos|length }} conjunto(s)</span>
+        <div class="card" style="margin-bottom:1.25rem;">
+            <div class="card-header" style="justify-content:space-between;">
+                <span style="display:flex;align-items:center;gap:8px;">
+                    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                    Conjuntos registrados
+                </span>
+                <span class="badge badge-info">{{ conjuntos|length }} conjunto(s)</span>
             </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead>
-                            <tr>
-                                <th>Género</th>
-                                <th>Talla</th>
-                                <th>Cantidad</th>
-                                <th>Prendas Generadas</th>
-                                <th>Notas</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for conjunto in conjuntos %}
-                            <tr>
-                                <td>{{ conjunto.get_genero_display }}</td>
-                                <td>{{ conjunto.talla }}</td>
-                                <td>{{ conjunto.cantidad }}</td>
-                                <td><span class="badge bg-success">{{ conjunto.cantidad|add:conjunto.cantidad|add:conjunto.cantidad|add:conjunto.cantidad }} prendas</span></td>
-                                <td>{{ conjunto.notas|default:"-" }}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+            <div class="table-wrap">
+                <table class="detail-table">
+                    <thead>
+                        <tr>
+                            <th>Género</th>
+                            <th>Talla</th>
+                            <th>Cantidad</th>
+                            <th>Prendas</th>
+                            <th>Notas</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for conjunto in conjuntos %}
+                        <tr>
+                            <td>{{ conjunto.get_genero_display }}</td>
+                            <td><span class="badge badge-default">{{ conjunto.talla }}</span></td>
+                            <td>{{ conjunto.cantidad }}</td>
+                            <td><span class="badge badge-success">{% widthratio conjunto.cantidad 1 4 %} prendas</span></td>
+                            <td style="opacity:.55;">{{ conjunto.notas|default:"—" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
         {% endif %}
-        
-        <!-- Ítems Individuales -->
+
+        <!-- Ítems individuales -->
         <div class="card">
-            <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="bi bi-list-check me-2"></i>Ítems del Pedido</h5>
-                <span class="badge bg-primary">{{ items|length }} ítem(s)</span>
+            <div class="card-header" style="justify-content:space-between;">
+                <span style="display:flex;align-items:center;gap:8px;">
+                    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                    Ítems del pedido
+                </span>
+                <span class="badge badge-info">{{ items|length }} ítem(s)</span>
             </div>
-            <div class="card-body p-0">
-                {% if items %}
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead>
-                                <tr>
-                                    <th>Tipo</th>
-                                    <th>Género</th>
-                                    <th>Talla</th>
-                                    <th>Cantidad</th>
-                                    <th>Origen</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for item in items %}
-                                <tr {% if item.es_parte_de_conjunto %}class="table-light"{% endif %}>
-                                    <td>{{ item.get_tipo_prenda_display }}</td>
-                                    <td>{{ item.get_genero_display }}</td>
-                                    <td><span class="badge bg-secondary">{{ item.talla }}</span></td>
-                                    <td class="fw-bold">{{ item.cantidad }}</td>
-                                    <td>
-                                        {% if item.es_parte_de_conjunto %}
-                                            <span class="badge bg-info">De conjunto</span>
-                                        {% else %}
-                                            <span class="badge bg-primary">Individual</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                {% else %}
-                    <div class="empty-state">
-                        <i class="bi bi-inbox"></i>
-                        <p>No hay ítems registrados</p>
-                        <a href="{% url 'pedidos:agregar_items' pedido.pk %}" class="btn btn-primary">
-                            Agregar Ítems
-                        </a>
-                    </div>
-                {% endif %}
+            {% if items %}
+            <div class="table-wrap">
+                <table class="detail-table">
+                    <thead>
+                        <tr>
+                            <th>Tipo</th>
+                            <th>Género</th>
+                            <th>Talla</th>
+                            <th>Cantidad</th>
+                            <th>Origen</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                        <tr {% if item.es_parte_de_conjunto %}class="row-dimmed"{% endif %}>
+                            <td>{{ item.get_tipo_prenda_display }}</td>
+                            <td>{{ item.get_genero_display }}</td>
+                            <td><span class="badge badge-default">{{ item.talla }}</span></td>
+                            <td style="font-weight:500;">{{ item.cantidad }}</td>
+                            <td>
+                                {% if item.es_parte_de_conjunto %}
+                                    <span class="badge badge-info">De conjunto</span>
+                                {% else %}
+                                    <span class="badge badge-accent">Individual</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
+            {% else %}
+            <div class="empty-state-inline">
+                <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+                <p>No hay ítems registrados</p>
+                <a href="{% url 'pedidos:agregar_items' pedido.pk %}" class="btn btn-primary" style="font-size:.8rem;padding:6px 14px;">Agregar ítems</a>
+            </div>
+            {% endif %}
         </div>
+
     </div>
 </div>
+
 {% endblock %}

@@ -1,0 +1,457 @@
+/* ============================================================
+   forms.css — Layout y estructura para formularios
+   Solo distribución: colores y fuentes vienen de base.html
+   ============================================================ */
+
+/* ---------- Page Header ---------- */
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  gap: 1rem;
+}
+
+.page-title h1 {
+  font-size: 1.35rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.page-title h1 svg {
+  stroke: currentColor;
+  opacity: 0.6;
+  flex-shrink: 0;
+}
+
+.page-title p {
+  font-size: 0.875rem;
+  margin: 6px 0 0 0;
+  opacity: 0.6;
+}
+
+/* ---------- Form layout (main 2fr + aside 1fr) ---------- */
+.form-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+@media (max-width: 768px) {
+  .form-layout {
+    grid-template-columns: 1fr;
+  }
+  .form-aside { order: -1; }
+}
+
+/* ---------- Card ---------- */
+.card {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.card-header {
+  padding: 0.875rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.card-header svg {
+  flex-shrink: 0;
+  opacity: 0.55;
+}
+
+.card-body {
+  padding: 1.5rem 1.25rem;
+}
+
+/* ---------- Crispy Forms: Row/Column grid ---------- */
+.form-row,
+.row {
+  display: grid !important;
+  gap: 0 1rem;
+}
+
+.row { grid-template-columns: repeat(12, 1fr); }
+
+.col-md-3  { grid-column: span 3; }
+.col-md-4  { grid-column: span 4; }
+.col-md-6  { grid-column: span 6; }
+.col-md-8  { grid-column: span 8; }
+.col-md-12 { grid-column: span 12; }
+
+@media (max-width: 640px) {
+  .col-md-3,
+  .col-md-4,
+  .col-md-6,
+  .col-md-8,
+  .col-md-12 {
+    grid-column: span 12;
+  }
+}
+
+/* ---------- Form Groups ---------- */
+.form-group {
+  margin-bottom: 1.125rem;
+}
+
+/* ---------- Labels ---------- */
+label,
+.form-label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.045em;
+  margin-bottom: 5px;
+  opacity: 0.65;
+}
+
+/* ---------- Inputs, Selects, Textareas ---------- */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="date"],
+input[type="tel"],
+input[type="url"],
+select,
+textarea,
+.form-control,
+.form-select {
+  display: block;
+  width: 100%;
+  padding: 8px 11px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+select,
+.form-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 11px center;
+  padding-right: 30px;
+  cursor: pointer;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 80px;
+  line-height: 1.6;
+}
+
+/* ---------- Checkbox (campo activo) ---------- */
+.form-check {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 1rem;
+}
+
+.form-check-input {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.form-check-label {
+  font-size: 0.875rem;
+  text-transform: none;
+  letter-spacing: normal;
+  opacity: 1;
+  margin: 0;
+  cursor: pointer;
+}
+
+/* ---------- Error states ---------- */
+.is-invalid {
+  border-color: #E24B4A !important;
+  box-shadow: 0 0 0 3px rgba(226, 75, 74, 0.1) !important;
+}
+
+.invalid-feedback,
+.errorlist {
+  font-size: 0.8rem;
+  color: #A32D2D;
+  margin-top: 4px;
+  list-style: none;
+  padding: 0;
+}
+
+.asteriskField {
+  color: #E24B4A;
+  margin-left: 2px;
+}
+
+/* ---------- Fila de botones (crispy col-md-12) ---------- */
+.form-group.col-md-12 {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding-top: 1.25rem;
+  margin-top: 0.5rem;
+  border-top: 0.5px solid rgba(0, 0, 0, 0.08);
+  margin-bottom: 0;
+}
+
+.btn {
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  transition: opacity 0.12s, transform 0.1s;
+  line-height: 1;
+  border: none;
+}
+
+.btn:active { transform: scale(0.98); }
+.btn:hover  { opacity: 0.88; text-decoration: none; }
+
+/* ---------- Aside panel ---------- */
+.aside-description {
+  font-size: 0.85rem;
+  line-height: 1.6;
+  opacity: 0.65;
+  margin-bottom: 1rem;
+}
+
+.aside-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.aside-list li {
+  font-size: 0.84rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 7px 0;
+  border-bottom: 0.5px solid rgba(0, 0, 0, 0.08);
+  line-height: 1.4;
+  opacity: 0.7;
+}
+
+.aside-list li:last-child { border-bottom: none; }
+
+.aside-list svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.aside-divider {
+  border: none;
+  border-top: 0.5px solid rgba(0, 0, 0, 0.08);
+  margin: 1rem 0;
+}
+
+.aside-subtitle {
+  font-size: 0.78rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.5;
+  margin: 0 0 0.5rem;
+}
+
+/* ---------- Layout de una sola columna (sin aside) ---------- */
+.form-layout--single {
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 780px;
+}
+
+/* ---------- action-buttons (form manual con <form> tag) ---------- */
+.action-buttons {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding-top: 1.25rem;
+  margin-top: 0.5rem;
+  border-top: 0.5px solid rgba(0, 0, 0, 0.08);
+}
+
+/* ============================================================
+   Estilos de vista detalle (cliente_detalle, pedido_detalle…)
+   ============================================================ */
+
+/* ---------- Page actions (botón derecha del header) ---------- */
+.page-actions {
+  flex-shrink: 0;
+}
+
+/* ---------- Detail grid (campos de info) ---------- */
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+}
+
+@media (max-width: 560px) {
+  .detail-grid { grid-template-columns: 1fr; }
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 0;
+  border-bottom: 0.5px solid rgba(0, 0, 0, 0.07);
+}
+
+.detail-item:nth-last-child(-n+2) {
+  border-bottom: none;
+}
+
+.detail-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.45;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.detail-label svg {
+  flex-shrink: 0;
+}
+
+.detail-value {
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+/* ---------- Table dentro de card (sin padding lateral) ---------- */
+.table-wrap {
+  overflow-x: auto;
+}
+
+.detail-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.detail-table thead tr {
+  border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
+}
+
+.detail-table th {
+  padding: 9px 1.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.5;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.detail-table td {
+  padding: 10px 1.25rem;
+  border-bottom: 0.5px solid rgba(0, 0, 0, 0.06);
+  vertical-align: middle;
+}
+
+.detail-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.detail-table tbody tr:hover {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.table-link {
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.table-link:hover {
+  text-decoration: underline;
+}
+
+/* ---------- Empty state inline (dentro de card) ---------- */
+.empty-state-inline {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 2.5rem 1rem;
+  opacity: 0.35;
+}
+
+.empty-state-inline p {
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+/* ---------- Stat rows (aside estadísticas) ---------- */
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 9px 0;
+  border-bottom: 0.5px solid rgba(0, 0, 0, 0.07);
+}
+
+.stat-row:last-child {
+  border-bottom: none;
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  opacity: 0.6;
+}
+
+.stat-value {
+  font-size: 1rem;
+  font-weight: 500;
+  min-width: 28px;
+  text-align: center;
+  padding: 2px 10px;
+  border-radius: 20px;
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.stat-value--success {
+  background: rgba(29, 158, 117, 0.12);
+  color: #0F6E56;
+}
+
+/* ---------- Badges ---------- */
+.badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 3px 9px;
+  border-radius: 20px;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+
+.badge-warning { background: rgba(186, 117, 23, 0.12); color: #854F0B; }
+.badge-info    { background: rgba(24,  95, 165, 0.12); color: #0C447C; }
+.badge-success { background: rgba(29, 158, 117, 0.12); color: #0F6E56; }
+.badge-accent  { background: rgba(83,  74, 183, 0.12); color: #3C3489; }
+.badge-default { background: rgba(0,     0,   0, 0.07); color: #5F5E5A; }

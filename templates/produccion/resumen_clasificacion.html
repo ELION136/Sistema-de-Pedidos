@@ -1,68 +1,155 @@
 {% extends 'base/base.html' %}
+{% load static %}
 
 {% block title %}Resumen Clasificación - {{ orden.codigo }}{% endblock %}
 
+{% block extra_css %}
+<!-- El mismo CSS que ya tenías (no cambia) -->
+<style>
+    /* ... mantén todo el CSS que ya escribiste ... */
+    /* Grid utilitario para estadísticas */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1.25rem;
+        margin-bottom: 2rem;
+    }
+
+    /* Mejoras para tablas de clasificación */
+    .class-table thead th {
+        position: sticky;
+        top: 0;
+        background: var(--surface2);
+        z-index: 5;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        color: var(--text-3);
+        border-bottom: 1px solid var(--border);
+    }
+
+    .class-table tfoot td {
+        background: var(--surface2);
+        font-weight: 600;
+        border-top: 1px solid var(--border);
+        color: var(--text-1);
+    }
+
+    .class-table tbody tr:hover {
+        background: var(--surface2);
+    }
+
+    .badge-gender {
+        background: var(--surface3);
+        color: var(--text-2);
+        font-weight: 500;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
+    .badge-gender.male { background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.25); }
+    .badge-gender.female { background: rgba(244,114,182,0.15); color: #f472b6; border: 1px solid rgba(244,114,182,0.25); }
+    .badge-gender.unisex { background: rgba(139,92,246,0.15); color: #a78bfa; border: 1px solid rgba(139,92,246,0.25); }
+
+    .tipo-badge {
+        background: var(--accent-muted);
+        color: var(--accent);
+        font-weight: 600;
+        padding: 2px 12px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    @media print {
+        .navbar, .sidebar, .sidebar-overlay, .page-actions, .btn, .no-print {
+            display: none !important;
+        }
+        .layout-body {
+            margin: 0 !important;
+            padding: 0.5rem !important;
+        }
+        .card {
+            border: 1px solid #ccc !important;
+            break-inside: avoid;
+        }
+        .stats-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+        .class-table thead th {
+            background: #f1f1f1 !important;
+            color: #000 !important;
+        }
+        body {
+            background: white;
+            color: black;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="page-header">
-    <div class="d-flex justify-content-between align-items-center">
-        <div>
-            <h1><i class="bi bi-table me-3"></i>Resumen de Clasificación</h1>
-            <p class="text-muted">Orden: {{ orden.codigo }} - Listo para producción</p>
-        </div>
-        <div>
-            <a href="{% url 'produccion:detalle_orden' orden.pk %}" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left me-2"></i>Volver
-            </a>
-            <button onclick="window.print()" class="btn btn-outline-primary">
-                <i class="bi bi-printer me-2"></i>Imprimir
-            </button>
-        </div>
+    <div class="page-title">
+        <h1>Resumen de clasificación</h1>
+        <p>Orden <strong>{{ orden.codigo }}</strong> · Listo para producción</p>
+    </div>
+    <div class="page-actions">
+        <a href="{% url 'produccion:detalle_orden' orden.pk %}" class="btn btn-secondary">
+            <svg viewBox="0 0 24 24" width="16" height="16"><polyline points="15 18 9 12 15 6" stroke="currentColor" fill="none" stroke-width="2"/></svg>
+            Volver
+        </a>
+        <button onclick="window.print()" class="btn btn-primary">
+            <svg viewBox="0 0 24 24" width="16" height="16"><path d="M6 9V3h12v6M6 21H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2" stroke="currentColor" fill="none" stroke-width="2"/><path d="M6 15h12v6H6z" stroke="currentColor" fill="none" stroke-width="2"/><path d="M8 7h8" stroke="currentColor" fill="none" stroke-width="2"/></svg>
+            Imprimir
+        </button>
     </div>
 </div>
 
-<!-- Información General -->
-<div class="card mb-4">
-    <div class="card-body">
-        <div class="row">
-            <div class="col-md-3">
-                <p class="mb-1"><strong>Orden:</strong> {{ orden.codigo }}</p>
-                <p class="mb-0"><strong>Gestión:</strong> {{ orden.gestion }}</p>
-            </div>
-            <div class="col-md-3">
-                <p class="mb-1"><strong>Estado:</strong> 
-                    <span class="badge bg-{% if orden.estado == 'pendiente' %}warning{% elif orden.estado == 'en_corte' %}info{% elif orden.estado == 'en_confeccion' %}primary{% elif orden.estado == 'en_acabados' %}secondary{% else %}success{% endif %}">
-                        {{ orden.get_estado_display }}
-                    </span>
-                </p>
-                <p class="mb-0"><strong>Pedidos:</strong> {{ orden.pedidos.count }}</p>
-            </div>
-            <div class="col-md-3">
-                <p class="mb-1"><strong>Inicio:</strong> {{ orden.fecha_inicio|date:"d/m/Y" }}</p>
-                <p class="mb-0"><strong>Fin Est.:</strong> {{ orden.fecha_fin_estimada|date:"d/m/Y" }}</p>
-            </div>
-            <div class="col-md-3 text-end">
-                <h2 class="text-primary mb-0">{{ total_prendas }}</h2>
-                <p class="text-muted">Total Prendas</p>
-            </div>
-        </div>
+<!-- Tarjetas de resumen -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-label">Orden de producción</div>
+        <div class="stat-value">{{ orden.codigo }}</div>
+        <div class="stat-sub">Gestión {{ orden.gestion }}</div>
+    </div>
+    <div class="stat-card success">
+        <div class="stat-label">Total prendas</div>
+        <div class="stat-value">{{ total_prendas|default:"0" }}</div>
+        <div class="stat-sub">Unidades clasificadas</div>
+    </div>
+    <div class="stat-card info">
+        <div class="stat-label">Estado actual</div>
+        <div class="stat-value">{{ orden.get_estado_display }}</div>
+        <div class="stat-sub">Inicio: {{ orden.fecha_inicio|date:"d/m/Y" }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Pedidos asociados</div>
+        <div class="stat-value">{{ orden.pedidos.count }}</div>
+        <div class="stat-sub">Fin estimado: {{ orden.fecha_fin_estimada|date:"d/m/Y" }}</div>
     </div>
 </div>
 
-<!-- Tabla de Clasificación -->
-<div class="card">
-    <div class="card-header bg-white">
-        <h5 class="mb-0"><i class="bi bi-grid-3x3 me-2"></i>Tabla de Clasificación</h5>
-    </div>
-    <div class="card-body p-0">
-        {% if tabla_resumen %}
-            {% for tipo_prenda, datos_genero in tabla_resumen.items %}
-            <div class="p-3 border-bottom">
-                <h5 class="mb-3">{{ tipo_prenda|title }}</h5>
-                <div class="table-responsive">
-                    <table class="table table-bordered table-sm">
-                        <thead class="table-dark">
+<!-- Tablas de clasificación -->
+{% if tabla_datos %}
+    {% for tipo in tabla_datos %}
+    <div class="card" style="margin-bottom: 2rem;">
+        <div class="card-body" style="padding-bottom: 0.75rem;">
+            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem;">
+                <span class="tipo-badge">{{ tipo.nombre|upper }}</span>
+                <span style="font-size: 0.75rem; color: var(--text-3);">Desglose por género y talla</span>
+            </div>
+            <div class="table-wrap">
+                <div class="table-wrap-scroll">
+                    <table class="class-table" style="width: 100%;" data-tipo="{{ tipo.nombre }}">
+                        <thead>
                             <tr>
-                                <th style="width: 100px;">Género</th>
+                                <th style="min-width: 100px;">Género</th>
                                 {% for talla in tallas %}
                                 <th class="text-center">{{ talla }}</th>
                                 {% endfor %}
@@ -70,65 +157,103 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for genero, datos_talla in datos_genero.items %}
+                            {% for genero_data in tipo.generos %}
                             <tr>
-                                <td class="fw-bold">
-                                    <span class="badge bg-{% if genero == 'varon' %}primary{% elif genero == 'mujer' %}danger{% else %}secondary{% endif %}">
-                                        {{ genero|title }}
+                                <td>
+                                    <span class="badge-gender 
+                                        {% if genero_data.genero == 'varon' %}male
+                                        {% elif genero_data.genero == 'mujer' %}female
+                                        {% else %}unisex{% endif %}">
+                                        {{ genero_data.genero|title }}
                                     </span>
                                 </td>
-                                {% for talla in tallas %}
-                                <td class="text-center">
-                                    {% with cantidad=datos_talla|get_item:talla %}
-                                        {% if cantidad > 0 %}
-                                            <span class="fw-bold">{{ cantidad }}</span>
-                                        {% else %}
-                                            <span class="text-muted">-</span>
-                                        {% endif %}
-                                    {% endwith %}
+                                {% for talla_item in genero_data.tallas %}
+                                <td class="text-center cell-talla" data-talla="{{ talla_item.talla }}">
+                                    {% if talla_item.cantidad > 0 %}
+                                        <strong>{{ talla_item.cantidad }}</strong>
+                                    {% else %}
+                                        <span style="color: var(--text-3);">—</span>
+                                    {% endif %}
                                 </td>
                                 {% endfor %}
-                                <td class="text-center fw-bold bg-light">
-                                    {% with total=0 %}
-                                        {% for talla in tallas %}
-                                            {% with cantidad=datos_talla|get_item:talla %}
-                                                {{ total|add:cantidad }}
-                                            {% endwith %}
-                                        {% endfor %}
-                                    {% endwith %}
-                                </td>
+                                <td class="text-center row-total" style="font-weight: 600; background: var(--surface2);">0</td>
                             </tr>
                             {% endfor %}
                         </tbody>
+                        <tfoot>
+                            <tr>
+                                <td style="font-weight: 600;">Total por talla</td>
+                                {% for talla in tallas %}
+                                <td class="text-center col-total" data-talla="{{ talla }}" style="font-weight: 700; background: var(--surface2);">0</td>
+                                {% endfor %}
+                                <td class="text-center grand-total" style="font-weight: 800; background: var(--surface2);">0</td>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
             </div>
-            {% endfor %}
-        {% else %}
-            <div class="empty-state">
-                <i class="bi bi-inbox"></i>
-                <p>No hay datos para mostrar</p>
-            </div>
-        {% endif %}
+        </div>
     </div>
-</div>
+    {% endfor %}
+{% else %}
+    <div class="card">
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke="currentColor" fill="none"/><line x1="3" y1="9" x2="21" y2="9" stroke="currentColor"/><line x1="3" y1="15" x2="21" y2="15" stroke="currentColor"/><line x1="9" y1="21" x2="9" y2="9" stroke="currentColor"/></svg>
+            </div>
+            <h3>Sin datos de clasificación</h3>
+            <p>No se encontraron prendas clasificadas para esta orden.</p>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}
 
-<style>
-    @media print {
-        .navbar, .sidebar, .btn {
-            display: none !important;
-        }
-        .main-content {
-            margin-left: 0 !important;
-            padding: 0 !important;
-        }
-        .card {
-            box-shadow: none !important;
-            border: 1px solid #ddd !important;
-        }
-        .card-header {
-            background-color: #f8f9fa !important;
+{% block extra_js %}
+<script>
+(function() {
+    function calcularTotalesTabla(table) {
+        const tbodyRows = table.querySelectorAll('tbody tr');
+        const tallaCells = table.querySelectorAll('thead th:not(:first-child):not(:last-child)');
+        const numTallas = tallaCells.length;
+        if (tbodyRows.length === 0) return;
+
+        let colSums = new Array(numTallas).fill(0);
+        let grandTotal = 0;
+
+        tbodyRows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            let rowSum = 0;
+            for (let i = 1; i <= numTallas; i++) {
+                const cell = cells[i];
+                let val = 0;
+                if (cell) {
+                    const raw = cell.innerText.trim();
+                    val = parseInt(raw, 10);
+                    if (isNaN(val)) val = 0;
+                }
+                rowSum += val;
+                if (colSums[i-1] !== undefined) colSums[i-1] += val;
+            }
+            grandTotal += rowSum;
+            const rowTotalCell = row.querySelector('.row-total');
+            if (rowTotalCell) rowTotalCell.innerText = rowSum;
+        });
+
+        const footRow = table.querySelector('tfoot tr');
+        if (footRow) {
+            const colTotalCells = footRow.querySelectorAll('.col-total');
+            colTotalCells.forEach((cell, idx) => {
+                if (colSums[idx] !== undefined) cell.innerText = colSums[idx];
+            });
+            const grandTotalCell = footRow.querySelector('.grand-total');
+            if (grandTotalCell) grandTotalCell.innerText = grandTotal;
         }
     }
-</style>
+
+    document.querySelectorAll('.class-table').forEach(table => calcularTotalesTabla(table));
+    window.addEventListener('beforeprint', () => {
+        document.querySelectorAll('.class-table').forEach(table => calcularTotalesTabla(table));
+    });
+})();
+</script>
 {% endblock %}

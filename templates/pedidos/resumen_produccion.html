@@ -1,131 +1,136 @@
 {% extends 'base/base.html' %}
+{% load static %}
 
 {% block title %}Resumen Producción - {{ pedido.codigo }}{% endblock %}
 
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/pedidos.css' %}">
+{% endblock %}
+
 {% block content %}
+
+<!-- ── Page header ── -->
 <div class="page-header">
-    <div class="d-flex justify-content-between align-items-center">
-        <div>
-            <h1><i class="bi bi-gear me-3"></i>Resumen para Producción</h1>
-            <p class="text-muted">Pedido: {{ pedido.codigo }} - {{ pedido.cliente.nombre }}</p>
-        </div>
-        <div>
-            <a href="{% url 'pedidos:detalle' pedido.pk %}" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left me-2"></i>Volver al Pedido
-            </a>
-            <button onclick="window.print()" class="btn btn-outline-primary">
-                <i class="bi bi-printer me-2"></i>Imprimir
-            </button>
-        </div>
+    <div class="page-title">
+        <h1>
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg>
+            Resumen para producción
+        </h1>
+        <p>Pedido: {{ pedido.codigo }} &middot; {{ pedido.cliente.nombre }}</p>
+    </div>
+    <div class="page-actions header-actions">
+        <a href="{% url 'pedidos:detalle' pedido.pk %}" class="btn btn-secondary">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            Volver al pedido
+        </a>
+        <button onclick="window.print()" class="btn btn-secondary">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Imprimir
+        </button>
     </div>
 </div>
 
-<!-- Resumen General -->
-<div class="row mb-4">
-    <div class="col-md-3">
-        <div class="card stat-card">
-            <div class="card-body text-center">
-                <div class="stat-value">{{ total_prendas }}</div>
-                <div class="stat-label">Total Prendas</div>
-            </div>
-        </div>
+<!-- ── Tarjetas de totales ── -->
+<div class="stat-cards-row">
+    <div class="stat-card-big">
+        <span class="stat-card-num">{{ total_prendas }}</span>
+        <span class="stat-card-label">Total prendas</span>
     </div>
     {% for total in totales_por_prenda %}
-    <div class="col-md-3">
-        <div class="card stat-card">
-            <div class="card-body text-center">
-                <div class="stat-value">{{ total.total }}</div>
-                <div class="stat-label">{{ total.get_tipo_prenda_display }}</div>
-            </div>
-        </div>
+    <div class="stat-card-big">
+        <span class="stat-card-num">{{ total.total }}</span>
+        <span class="stat-card-label">{{ total.get_tipo_prenda_display }}</span>
     </div>
     {% endfor %}
 </div>
 
-<!-- Tabla Detallada -->
-<div class="card">
-    <div class="card-header bg-white">
-        <h5 class="mb-0"><i class="bi bi-table me-2"></i>Detalle por Tipo, Género y Talla</h5>
+<!-- ── Tabla detallada ── -->
+<div class="card" style="margin-bottom:1.25rem;">
+    <div class="card-header">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>
+        Detalle por tipo, género y talla
     </div>
-    <div class="card-body p-0">
-        {% if resumen_detallado %}
-            <div class="table-responsive">
-                <table class="table table-bordered table-hover mb-0">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>Tipo de Prenda</th>
-                            <th>Género</th>
-                            <th>Talla</th>
-                            <th class="text-center">Cantidad</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for item in resumen_detallado %}
-                        <tr>
-                            <td class="fw-bold">{{ item.get_tipo_prenda_display }}</td>
-                            <td>
-                                <span class="badge bg-{% if item.genero == 'varon' %}primary{% elif item.genero == 'mujer' %}danger{% else %}secondary{% endif %}">
-                                    {{ item.get_genero_display }}
-                                </span>
-                            </td>
-                            <td><span class="badge bg-secondary">{{ item.talla }}</span></td>
-                            <td class="text-center fw-bold fs-5">{{ item.total }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                    <tfoot class="table-light">
-                        <tr>
-                            <td colspan="3" class="text-end fw-bold">TOTAL:</td>
-                            <td class="text-center fw-bold fs-5 text-primary">{{ total_prendas }}</td>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
-        {% else %}
-            <div class="empty-state">
-                <i class="bi bi-inbox"></i>
-                <p>No hay ítems para mostrar</p>
-            </div>
-        {% endif %}
+    {% if resumen_detallado %}
+    <div class="table-wrap">
+        <table class="detail-table">
+            <thead>
+                <tr>
+                    <th>Tipo de prenda</th>
+                    <th>Género</th>
+                    <th>Talla</th>
+                    <th style="text-align:center;">Cantidad</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in resumen_detallado %}
+                <tr>
+                    <td style="font-weight:500;">{{ item.get_tipo_prenda_display }}</td>
+                    <td>
+                        {% if item.genero == 'varon' %}<span class="badge badge-info">{{ item.get_genero_display }}</span>
+                        {% elif item.genero == 'mujer' %}<span class="badge badge-accent">{{ item.get_genero_display }}</span>
+                        {% else %}<span class="badge badge-default">{{ item.get_genero_display }}</span>{% endif %}
+                    </td>
+                    <td><span class="badge badge-default">{{ item.talla }}</span></td>
+                    <td style="text-align:center;font-weight:600;font-size:1rem;">{{ item.total }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr class="table-foot-row">
+                    <td colspan="3" style="text-align:right;font-weight:500;opacity:.6;font-size:.8rem;text-transform:uppercase;letter-spacing:.04em;">Total</td>
+                    <td style="text-align:center;font-weight:700;font-size:1.1rem;">{{ total_prendas }}</td>
+                </tr>
+            </tfoot>
+        </table>
     </div>
+    {% else %}
+    <div class="empty-state-inline">
+        <p>No hay ítems para mostrar</p>
+    </div>
+    {% endif %}
 </div>
 
-<!-- Información del Pedido -->
-<div class="card mt-4">
-    <div class="card-header bg-white">
-        <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Información del Pedido</h5>
+<!-- ── Info del pedido ── -->
+<div class="card">
+    <div class="card-header">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Información del pedido
     </div>
     <div class="card-body">
-        <div class="row">
-            <div class="col-md-4">
-                <p class="mb-1"><strong>Código:</strong> {{ pedido.codigo }}</p>
-                <p class="mb-1"><strong>Cliente:</strong> {{ pedido.cliente.nombre }}</p>
+        <div class="detail-grid">
+            <div class="detail-item">
+                <span class="detail-label">Código</span>
+                <span class="detail-value">{{ pedido.codigo }}</span>
             </div>
-            <div class="col-md-4">
-                <p class="mb-1"><strong>Gestión:</strong> {{ pedido.gestion }}</p>
-                <p class="mb-1"><strong>Tipo:</strong> {{ pedido.get_tipo_pedido_display }}</p>
+            <div class="detail-item">
+                <span class="detail-label">Cliente</span>
+                <span class="detail-value">{{ pedido.cliente.nombre }}</span>
             </div>
-            <div class="col-md-4">
-                <p class="mb-1"><strong>Estado:</strong> {{ pedido.get_estado_display }}</p>
-                <p class="mb-0"><strong>Fecha:</strong> {{ pedido.creado_en|date:"d/m/Y" }}</p>
+            <div class="detail-item">
+                <span class="detail-label">Gestión</span>
+                <span class="detail-value">{{ pedido.gestion }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Tipo</span>
+                <span class="detail-value">{{ pedido.get_tipo_pedido_display }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Estado</span>
+                <span class="detail-value">{{ pedido.get_estado_display }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Fecha</span>
+                <span class="detail-value">{{ pedido.creado_en|date:"d/m/Y" }}</span>
             </div>
         </div>
     </div>
 </div>
 
 <style>
-    @media print {
-        .navbar, .sidebar, .btn {
-            display: none !important;
-        }
-        .main-content {
-            margin-left: 0 !important;
-            padding: 0 !important;
-        }
-        .card {
-            box-shadow: none !important;
-            border: 1px solid #ddd !important;
-        }
-    }
+@media print {
+    .page-actions, nav, .sidebar { display: none !important; }
+    .card { border: 1px solid #ccc !important; box-shadow: none !important; }
+}
 </style>
+
 {% endblock %}

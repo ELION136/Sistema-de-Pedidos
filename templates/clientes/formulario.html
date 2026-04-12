@@ -1,45 +1,141 @@
 {% extends 'base/base.html' %}
+{% load static %}
 {% load crispy_forms_tags %}
 
 {% block title %}{{ titulo }} - Clientes{% endblock %}
 
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/form.css' %}">
+{% endblock %}
+
 {% block content %}
+
+<!-- ── Page header ── -->
 <div class="page-header">
-    <h1><i class="bi bi-building me-3"></i>{{ titulo }}</h1>
-    <p class="text-muted">
-        {% if cliente %}
-            Editando: {{ cliente.nombre }}
-        {% else %}
-            Complete la información del nuevo cliente
-        {% endif %}
-    </p>
+    <div class="page-title">
+        <h1>
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none"
+                 stroke="currentColor" stroke-width="1.8"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4-4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+            </svg>
+            {{ titulo }}
+        </h1>
+        <p>
+            {% if cliente %}
+                Editando: {{ cliente.nombre }}
+            {% else %}
+                Complete la información del nuevo cliente
+            {% endif %}
+        </p>
+    </div>
 </div>
 
-<div class="row">
-    <div class="col-md-8">
+<!-- ── Cuerpo: formulario + aside ── -->
+<div class="form-layout">
+
+    <!-- Columna principal -->
+    <div class="form-main">
         <div class="card">
+            <div class="card-header">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none"
+                     stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4-4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                </svg>
+                Datos del cliente
+            </div>
             <div class="card-body">
                 {% crispy form %}
             </div>
         </div>
     </div>
-    
-    <div class="col-md-4">
+
+    <!-- Columna lateral -->
+    <div class="form-aside">
         <div class="card">
-            <div class="card-header bg-white">
-                <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Ayuda</h5>
+            <div class="card-header">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none"
+                     stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="8" x2="12" y2="12"/>
+                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                Ayuda
             </div>
             <div class="card-body">
-                <p class="text-muted mb-3">
+                <p class="aside-description">
                     Complete todos los campos obligatorios para registrar un nuevo cliente.
                 </p>
-                <ul class="list-unstyled text-muted">
-                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Nombre es obligatorio</li>
-                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>El tipo de cliente ayuda a clasificar</li>
-                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>La información de contacto es importante</li>
+                <ul class="aside-list">
+                    <li>
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none"
+                             stroke="currentColor" stroke-width="2.5"
+                             stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        Nombre es obligatorio
+                    </li>
+                    <li>
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none"
+                             stroke="currentColor" stroke-width="2.5"
+                             stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        El tipo de cliente ayuda a clasificar
+                    </li>
+                    <li>
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none"
+                             stroke="currentColor" stroke-width="2.5"
+                             stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        La información de contacto es importante
+                    </li>
+                </ul>
+
+                <hr class="aside-divider">
+
+                <p class="aside-subtitle">Campos del formulario</p>
+                <ul class="aside-list">
+                    <li>
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none"
+                             stroke="currentColor" stroke-width="2"
+                             stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="8" x2="12" y2="12"/>
+                            <line x1="12" y1="16" x2="12.01" y2="16"/>
+                        </svg>
+                        <span><strong>Nombre · Tipo · NIT</strong> — identificación principal</span>
+                    </li>
+                    <li>
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none"
+                             stroke="currentColor" stroke-width="2"
+                             stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="8" x2="12" y2="12"/>
+                            <line x1="12" y1="16" x2="12.01" y2="16"/>
+                        </svg>
+                        <span><strong>Contacto · Cargo</strong> — persona responsable</span>
+                    </li>
+                    <li>
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none"
+                             stroke="currentColor" stroke-width="2"
+                             stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="8" x2="12" y2="12"/>
+                            <line x1="12" y1="16" x2="12.01" y2="16"/>
+                        </svg>
+                        <span><strong>Teléfono · Email · Ciudad</strong> — datos de contacto</span>
+                    </li>
                 </ul>
             </div>
         </div>
     </div>
+
 </div>
+
 {% endblock %}

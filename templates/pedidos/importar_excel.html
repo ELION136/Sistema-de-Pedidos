@@ -1,154 +1,155 @@
 {% extends 'base/base.html' %}
+{% load static %}
 {% load crispy_forms_tags %}
 
 {% block title %}Importar Excel - {{ pedido.codigo }}{% endblock %}
 
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/pedidos.css' %}">
+{% endblock %}
+
 {% block content %}
+
+<!-- ── Page header ── -->
 <div class="page-header">
-    <div class="d-flex justify-content-between align-items-center">
-        <div>
-            <h1><i class="bi bi-file-earmark-excel me-3"></i>Importar desde Excel</h1>
-            <p class="text-muted">Pedido: {{ pedido.codigo }} - {{ pedido.cliente.nombre }}</p>
-        </div>
-        <a href="{% url 'pedidos:detalle' pedido.pk %}" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left me-2"></i>Volver al Pedido
+    <div class="page-title">
+        <h1>
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+            Importar desde Excel
+        </h1>
+        <p>Pedido: {{ pedido.codigo }} &middot; {{ pedido.cliente.nombre }}</p>
+    </div>
+    <div class="page-actions">
+        <a href="{% url 'pedidos:detalle' pedido.pk %}" class="btn btn-secondary">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            Volver al pedido
         </a>
     </div>
 </div>
 
-<div class="row">
-    <div class="col-md-4">
-        <!-- Formulario de Importación -->
+<!-- ── Layout: formulario (1fr) + preview (2fr) ── -->
+<div class="form-layout">
+
+    <!-- Columna lateral: subir archivo -->
+    <div class="form-aside">
         <div class="card">
-            <div class="card-header bg-white">
-                <h5 class="mb-0"><i class="bi bi-upload me-2"></i>Subir Archivo</h5>
+            <div class="card-header">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Subir archivo
             </div>
             <div class="card-body">
                 <form method="post" enctype="multipart/form-data">
                     {% csrf_token %}
-                    
-                    <div class="mb-3">
-                        <label for="archivo" class="form-label">Seleccione el archivo Excel</label>
-                        <input type="file" name="archivo" id="archivo" class="form-control" 
-                               accept=".xlsx,.xls" required>
-                        <div class="form-text">Formatos permitidos: .xlsx, .xls</div>
+                    <div class="form-group">
+                        <label for="archivo">Archivo Excel</label>
+                        <input type="file" name="archivo" id="archivo"
+                               class="form-control" accept=".xlsx,.xls" required>
+                        <p style="font-size:0.78rem;opacity:.5;margin-top:5px;">Formatos: .xlsx, .xls</p>
                     </div>
-                    
-                    <div class="alert alert-info">
-                        <h6><i class="bi bi-info-circle me-2"></i>Formato esperado:</h6>
-                        <table class="table table-sm table-borderless mb-0">
-                            <tr>
-                                <td><strong>Columna A:</strong></td>
-                                <td>Tipo de Prenda</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Columna B:</strong></td>
-                                <td>Género</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Columna C:</strong></td>
-                                <td>Talla</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Columna D:</strong></td>
-                                <td>Cantidad</td>
-                            </tr>
-                        </table>
+
+                    <div class="info-notice" style="margin-bottom:1rem;">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        <strong>Formato esperado</strong>
                     </div>
-                    
-                    <div class="alert alert-warning">
-                        <small><i class="bi bi-exclamation-triangle me-2"></i>
-                        Tipos válidos: Chamarra, Buso, Polera, Short<br>
-                        Géneros válidos: Varón, Mujer, Unisex<br>
-                        Tallas: 4, 6, 8, 10, 12, 14, 16, S, M, L, XL, XXL</small>
+
+                    <table class="info-table" style="margin-bottom:1rem;">
+                        <tr><td class="info-label">Col. A</td><td class="info-val">Tipo de Prenda</td></tr>
+                        <tr><td class="info-label">Col. B</td><td class="info-val">Género</td></tr>
+                        <tr><td class="info-label">Col. C</td><td class="info-val">Talla</td></tr>
+                        <tr><td class="info-label">Col. D</td><td class="info-val">Cantidad</td></tr>
+                    </table>
+
+                    <div class="info-notice info-notice--warning" style="margin-bottom:1.25rem;">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                        <span style="font-size:.8rem;">
+                            Tipos: Chamarra, Buso, Polera, Short<br>
+                            Géneros: Varón, Mujer, Unisex<br>
+                            Tallas: 4, 6, 8 … XL, XXL
+                        </span>
                     </div>
-                    
-                    <button type="submit" name="preview" class="btn btn-primary w-100">
-                        <i class="bi bi-eye me-2"></i>Vista Previa
+
+                    <button type="submit" name="preview" class="btn btn-primary" style="width:100%;">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        Vista previa
                     </button>
                 </form>
             </div>
         </div>
     </div>
-    
-    <div class="col-md-8">
-        <!-- Vista Previa -->
+
+    <!-- Columna principal: preview / errores / estado inicial -->
+    <div class="form-main">
+
         {% if preview_data %}
         <div class="card">
-            <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="bi bi-eye me-2"></i>Vista Previa</h5>
-                <span class="badge bg-primary">{{ preview_data|length }} filas válidas</span>
+            <div class="card-header" style="justify-content:space-between;">
+                <span style="display:flex;align-items:center;gap:8px;">
+                    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    Vista previa
+                </span>
+                <span class="badge badge-info">{{ preview_data|length }} filas válidas</span>
             </div>
-            <div class="card-body p-0">
-                {% if preview_data %}
-                    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
-                        <table class="table table-hover mb-0">
-                            <thead class="sticky-top">
-                                <tr>
-                                    <th>#</th>
-                                    <th>Tipo de Prenda</th>
-                                    <th>Género</th>
-                                    <th>Talla</th>
-                                    <th>Cantidad</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for row in preview_data %}
-                                <tr>
-                                    <td>{{ forloop.counter }}</td>
-                                    <td>{{ row.tipo_prenda|title }}</td>
-                                    <td>{{ row.genero|title }}</td>
-                                    <td><span class="badge bg-secondary">{{ row.talla }}</span></td>
-                                    <td class="fw-bold">{{ row.cantidad }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    
-                    <div class="p-3 border-top">
-                        <form method="post">
-                            {% csrf_token %}
-                            <input type="hidden" name="confirmar" value="true">
-                            <input type="hidden" name="importacion_id" value="{{ importacion_id }}">
-                            <button type="submit" class="btn btn-success w-100">
-                                <i class="bi bi-check-circle me-2"></i>Confirmar Importación
-                            </button>
-                        </form>
-                    </div>
-                {% endif %}
+            <div class="table-wrap" style="max-height:360px;overflow-y:auto;">
+                <table class="detail-table">
+                    <thead>
+                        <tr><th>#</th><th>Tipo</th><th>Género</th><th>Talla</th><th>Cantidad</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for row in preview_data %}
+                        <tr>
+                            <td style="opacity:.4;">{{ forloop.counter }}</td>
+                            <td>{{ row.tipo_prenda|title }}</td>
+                            <td>{{ row.genero|title }}</td>
+                            <td><span class="badge badge-default">{{ row.talla }}</span></td>
+                            <td style="font-weight:500;">{{ row.cantidad }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div style="padding:1rem 1.25rem;border-top:0.5px solid rgba(0,0,0,0.08);">
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="confirmar" value="true">
+                    <input type="hidden" name="importacion_id" value="{{ importacion_id }}">
+                    <button type="submit" class="btn btn-primary" style="width:100%;">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        Confirmar importación
+                    </button>
+                </form>
             </div>
         </div>
         {% endif %}
-        
-        <!-- Errores -->
+
         {% if errores %}
-        <div class="card mt-4">
-            <div class="card-header bg-danger text-white">
-                <h5 class="mb-0"><i class="bi bi-exclamation-triangle me-2"></i>Errores Encontrados</h5>
+        <div class="card" style="{% if preview_data %}margin-top:1.25rem;{% endif %}">
+            <div class="card-header card-header--danger">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                Errores encontrados
             </div>
             <div class="card-body">
-                <ul class="list-group">
+                <ul class="error-list">
                     {% for error in errores %}
-                    <li class="list-group-item list-group-item-danger">
-                        <i class="bi bi-x-circle me-2"></i>{{ error }}
+                    <li>
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        {{ error }}
                     </li>
                     {% endfor %}
                 </ul>
             </div>
         </div>
         {% endif %}
-        
-        <!-- Estado Inicial -->
+
         {% if not preview_data and not errores %}
         <div class="card">
-            <div class="card-body text-center py-5">
-                <i class="bi bi-file-earmark-excel text-muted" style="font-size: 5rem;"></i>
-                <h4 class="mt-3 text-muted">Vista Previa</h4>
-                <p class="text-muted">Suba un archivo Excel para ver la vista previa de los datos</p>
+            <div class="empty-state-inline" style="padding:4rem 1rem;">
+                <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+                <p style="font-size:.95rem;">Suba un archivo Excel para ver la vista previa</p>
             </div>
         </div>
         {% endif %}
+
     </div>
 </div>
+
 {% endblock %}
