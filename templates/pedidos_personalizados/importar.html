@@ -1,0 +1,38 @@
+{% extends 'base/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Importar Pedidos (Excel){% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h2>Importar Pedidos Personalizados desde Excel</h2>
+    <p class="text-muted">Sube un archivo .xlsx con la estructura correcta.</p>
+
+    <div class="card mb-4 border-info">
+        <div class="card-body">
+            <h5>Estructura requerida:</h5>
+            <ul>
+                <li><strong>Cliente</strong>: Nombre exacto de la institución.</li>
+                <li><strong>Nombre Completo</strong>: Del beneficiario.</li>
+                <li><strong>Gestión</strong>: Año (ej. 2024).</li>
+                <li><strong>Categoría</strong>: Ej. Promoción 2025.</li>
+                <li><strong>Tipo Pedido</strong>: "conjunto completo" o "prendas separadas".</li>
+                <li><strong>Prenda</strong> (Opcional si es conjunto).</li>
+                <li><strong>Talla</strong> y <strong>Género</strong>.</li>
+                <li><strong>Aporte</strong> y <strong>Total</strong> (Opcional).</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ form|crispy }}
+                <button type="submit" class="btn btn-success mt-3">Procesar Excel</button>
+                <a href="{% url 'pedidos_personalizados:dashboard' %}" class="btn btn-secondary mt-3">Cancelar</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

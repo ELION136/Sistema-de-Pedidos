@@ -1,0 +1,54 @@
+{% extends 'base/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Prendas Separadas - {{ pedido.nombre_completo }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between mb-4">
+        <h2>Gestión de Prendas Separadas</h2>
+        <a href="{% url 'pedidos_personalizados:lista' %}" class="btn btn-secondary">Volver a lista</a>
+    </div>
+
+    <div class="alert alert-info">
+        <strong>Beneficiario:</strong> {{ pedido.nombre_completo }} | 
+        <strong>Institución:</strong> {{ pedido.cliente.nombre }}
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">Agregar Prenda</div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        <button type="submit" class="btn btn-success mt-3 w-100">Agregar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">Prendas Actuales</div>
+                <ul class="list-group list-group-flush">
+                    {% for item in items %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>{{ item.get_tipo_prenda_display }}</strong> - Talla: {{ item.talla }} / Género: {{ item.get_genero_display }}
+                            <br><small>Cantidad: {{ item.cantidad }}</small>
+                        </div>
+                        <form action="{% url 'pedidos_personalizados:eliminar_item' item.pk %}" method="post" style="display:inline;">
+                            {% csrf_token %}
+                            <button class="btn btn-sm btn-danger" onclick="return confirm('¿Eliminar esta prenda?')">Eliminar</button>
+                        </form>
+                    </li>
+                    {% empty %}
+                    <li class="list-group-item text-center">No hay prendas registradas.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

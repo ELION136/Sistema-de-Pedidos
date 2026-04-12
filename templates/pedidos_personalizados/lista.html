@@ -1,0 +1,343 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Lista de Pedidos Personalizados{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ── Filtros ── */
+    .filters-panel {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 18px 20px;
+        margin-bottom: 20px;
+    }
+
+    .filters-form {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr) auto;
+        gap: 10px;
+        align-items: end;
+    }
+
+    .filter-field { display: flex; flex-direction: column; gap: 6px; }
+
+    .filter-field label {
+        font-size: 10.5px;
+        font-weight: 500;
+        color: var(--text-3);
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+    }
+
+    .filter-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        align-items: flex-start;
+        padding-bottom: 1px;
+    }
+
+    .filter-actions-row {
+        display: flex;
+        gap: 6px;
+    }
+
+    /* ── Tabla panel ── */
+    .table-panel {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+    }
+
+    .table-panel table thead th { padding: 10px 14px; font-size: 10.5px; }
+    .table-panel table tbody td { padding: 12px 14px; font-size: 13px; }
+
+    /* Beneficiario */
+    .beneficiario-name {
+        font-weight: 600;
+        color: var(--text-1);
+        font-size: 13.5px;
+    }
+
+    /* Institución/cat */
+    .inst-main { color: var(--text-1); font-size: 13px; }
+    .inst-sub  { color: var(--text-3); font-size: 11.5px; margin-top: 2px; }
+
+    /* Saldo */
+    .saldo-cell {
+        font-family: var(--font-display);
+        font-size: 12.5px;
+        font-weight: 600;
+        color: var(--text-1);
+    }
+
+    .saldo-prefix { font-size: 11px; color: var(--text-3); font-weight: 400; margin-right: 2px; }
+
+    /* Estado pedido */
+    .estado-text { font-size: 12.5px; color: var(--text-2); }
+
+    /* Botones acción */
+    .row-actions { display: flex; gap: 6px; }
+
+    .btn-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 30px;
+        padding: 0 10px;
+        border-radius: var(--radius-xs);
+        border: 1px solid var(--border);
+        background: transparent;
+        color: var(--text-2);
+        font-size: 12px;
+        font-family: var(--font-body);
+        text-decoration: none;
+        white-space: nowrap;
+        gap: 5px;
+        transition: border-color var(--transition), background var(--transition), color var(--transition);
+    }
+
+    .btn-icon svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 2; flex-shrink: 0; }
+
+    .btn-icon.edit:hover   { border-color: rgba(249,115,22,0.25); background: var(--accent-muted); color: var(--accent); }
+    .btn-icon.prendas:hover { border-color: var(--blue-border); background: var(--blue-bg); color: #60a5fa; }
+
+    /* Empty row */
+    .empty-row td {
+        text-align: center;
+        padding: 40px 16px !important;
+        color: var(--text-3);
+        font-size: 13px;
+    }
+
+    /* ── Paginación ── */
+    .pagination {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        padding: 16px;
+        border-top: 1px solid var(--border);
+    }
+
+    .page-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 34px; height: 34px;
+        padding: 0 8px;
+        border-radius: var(--radius-xs);
+        border: 1px solid var(--border);
+        background: transparent;
+        color: var(--text-2);
+        font-size: 13px;
+        font-family: var(--font-body);
+        text-decoration: none;
+        transition: border-color var(--transition), background var(--transition), color var(--transition);
+    }
+
+    .page-btn:hover { border-color: var(--border-hover); background: var(--surface2); color: var(--text-1); }
+    .page-btn.active { background: var(--accent); border-color: var(--accent); color: white; font-weight: 600; pointer-events: none; }
+    .page-btn.disabled { opacity: 0.35; pointer-events: none; }
+    .page-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+    /* ── Responsive ── */
+    @media (max-width: 1100px) {
+        .filters-form { grid-template-columns: repeat(3, 1fr); }
+        .filter-actions { grid-column: 1 / -1; flex-direction: row; align-items: center; }
+    }
+
+    @media (max-width: 700px) {
+        .filters-form { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 480px) {
+        .filters-form { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ── Page header ── -->
+<div class="page-header">
+    <div class="page-title">
+        <h1>Pedidos personalizados</h1>
+        <p>Listado de pedidos individuales por beneficiario</p>
+    </div>
+    <div class="page-actions">
+        <a href="{% url 'pedidos_personalizados:crear' %}" class="btn btn-primary">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Nuevo pedido
+        </a>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     FILTROS
+══════════════════════════════════════ -->
+<div class="filters-panel">
+    <form method="get" class="filters-form">
+
+        <div class="filter-field">
+            <label>Buscar</label>
+            {{ form_filtros.buscar }}
+        </div>
+
+        <div class="filter-field">
+            <label>Cliente</label>
+            {{ form_filtros.cliente }}
+        </div>
+
+        <div class="filter-field">
+            <label>Categoría</label>
+            {{ form_filtros.categoria }}
+        </div>
+
+        <div class="filter-field">
+            <label>Estado pedido</label>
+            {{ form_filtros.estado_pedido }}
+        </div>
+
+        <div class="filter-field">
+            <label>Estado pago</label>
+            {{ form_filtros.estado_pago }}
+        </div>
+
+        <div class="filter-actions">
+            <div class="filter-actions-row">
+                <button type="submit" class="btn btn-primary">
+                    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    Filtrar
+                </button>
+                <a href="{% url 'pedidos_personalizados:lista' %}" class="btn btn-ghost">
+                    <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    Limpiar
+                </a>
+            </div>
+            <button type="submit" formaction="{% url 'pedidos_personalizados:exportar' %}" class="btn btn-success btn-sm">
+                <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Exportar Excel
+            </button>
+        </div>
+
+    </form>
+</div>
+
+<!-- ══════════════════════════════════════
+     TABLA
+══════════════════════════════════════ -->
+<div class="table-panel">
+    <div class="table-wrap-scroll">
+        <table>
+            <thead>
+                <tr>
+                    <th>Beneficiario</th>
+                    <th>Institución / Cat.</th>
+                    <th>Tipo</th>
+                    <th>Pago</th>
+                    <th>Saldo</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in page_obj %}
+                <tr>
+                    <td data-label="Beneficiario">
+                        <span class="beneficiario-name">{{ p.nombre_completo }}</span>
+                    </td>
+
+                    <td data-label="Institución">
+                        <div class="inst-main">{{ p.cliente.nombre }}</div>
+                        <div class="inst-sub">{{ p.categoria }} · {{ p.gestion }}</div>
+                    </td>
+
+                    <td data-label="Tipo">{{ p.get_tipo_pedido_display }}</td>
+
+                    <td data-label="Pago">
+                        {% if p.estado_pago == 'pagado' %}
+                            <span class="badge badge-success">{{ p.get_estado_pago_display }}</span>
+                        {% elif p.estado_pago == 'parcial' %}
+                            <span class="badge badge-warning">{{ p.get_estado_pago_display }}</span>
+                        {% else %}
+                            <span class="badge badge-danger">{{ p.get_estado_pago_display }}</span>
+                        {% endif %}
+                    </td>
+
+                    <td data-label="Saldo">
+                        <span class="saldo-cell">
+                            <span class="saldo-prefix">Bs.</span>{{ p.saldo }}
+                        </span>
+                    </td>
+
+                    <td data-label="Estado">
+                        <span class="estado-text">{{ p.get_estado_pedido_display }}</span>
+                    </td>
+
+                    <td data-label="Acciones">
+                        <div class="row-actions">
+                            <a href="{% url 'pedidos_personalizados:editar' p.pk %}"
+                               class="btn-icon edit" aria-label="Editar pedido de {{ p.nombre_completo }}">
+                                <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                Editar
+                            </a>
+                            {% if p.tipo_pedido == 'separado' %}
+                            <a href="{% url 'pedidos_personalizados:agregar_item' p.pk %}"
+                               class="btn-icon prendas" aria-label="Ver prendas de {{ p.nombre_completo }}">
+                                <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>
+                                Prendas
+                            </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr class="empty-row">
+                    <td colspan="7">No se encontraron pedidos con los filtros aplicados.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Paginación -->
+    {% if page_obj.has_other_pages %}
+    <nav class="pagination" aria-label="Paginación de pedidos personalizados">
+
+        {% if page_obj.has_previous %}
+        <a class="page-btn" href="?page={{ page_obj.previous_page_number }}" aria-label="Página anterior">
+            <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+        </a>
+        {% else %}
+        <span class="page-btn disabled"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></span>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+                <span class="page-btn active" aria-current="page">{{ num }}</span>
+            {% elif num >= page_obj.number|add:"-2" and num <= page_obj.number|add:"2" %}
+                <a class="page-btn" href="?page={{ num }}">{{ num }}</a>
+            {% elif num == 1 or num == page_obj.paginator.num_pages %}
+                <a class="page-btn" href="?page={{ num }}">{{ num }}</a>
+            {% elif num == page_obj.number|add:"-3" or num == page_obj.number|add:"3" %}
+                <span class="page-btn disabled">…</span>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <a class="page-btn" href="?page={{ page_obj.next_page_number }}" aria-label="Página siguiente">
+            <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+        </a>
+        {% else %}
+        <span class="page-btn disabled"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></span>
+        {% endif %}
+
+    </nav>
+    {% endif %}
+
+</div>
+
+{% endblock %}
