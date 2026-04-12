@@ -1,11 +1,31 @@
 """
 Vistas principales del sistema
 """
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import login
 from apps.pedidos.models import Pedido
 from apps.clientes.models import Cliente
 from apps.produccion.models import OrdenProduccion
+
+
+def register(request):
+    """Vista para el registro de nuevos usuarios"""
+    if request.user.is_authenticated:
+        return redirect('core:dashboard')
+        
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect('core:dashboard')
+    else:
+        form = UserCreationForm()
+        
+    context = {'form': form}
+    return render(request, 'core/register.html', context)
 
 
 @login_required

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iniciar Sesión — Gestión de Pedidos</title>
+    <title>Registro — Gestión de Pedidos</title>
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -188,34 +188,6 @@
             background: var(--bg);
         }
 
-        /* Badge "sistema activo" */
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 7px;
-            background: rgba(249,115,22,0.1);
-            border: 1px solid rgba(249,115,22,0.2);
-            border-radius: 20px;
-            padding: 4px 12px;
-            font-size: 11px;
-            color: var(--accent);
-            letter-spacing: 0.3px;
-            margin-bottom: 28px;
-            width: fit-content;
-        }
-
-        .status-dot {
-            width: 6px; height: 6px;
-            background: var(--green);
-            border-radius: 50%;
-            animation: pulse-dot 2s ease-in-out infinite;
-        }
-
-        @keyframes pulse-dot {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50%       { opacity: 0.5; transform: scale(0.8); }
-        }
-
         /* Form header */
         .form-header { margin-bottom: 32px; }
 
@@ -252,13 +224,10 @@
             margin-top: 1px;
         }
 
-        .alert-django.alert-warning {
-            background: rgba(234,179,8,0.08);
-            border-color: rgba(234,179,8,0.2);
-            color: #fde68a;
+        .alert-django ul {
+            margin-left: 14px;
+            margin-top: 4px;
         }
-
-        .alert-django.alert-warning svg { fill: #fbbf24; }
 
         /* Fields */
         .field-group { margin-bottom: 18px; }
@@ -327,82 +296,12 @@
             box-shadow: 0 0 0 3px rgba(239,68,68,0.1);
         }
 
-        /* Toggle contraseña */
-        .field-toggle {
-            position: absolute;
-            right: 12px;
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 5px;
+        .help-text {
+            display: block;
+            font-size: 11px;
             color: var(--text-3);
-            display: flex;
-            align-items: center;
-            transition: color 0.15s;
+            margin-top: 6px;
         }
-
-        .field-toggle:hover { color: var(--text-2); }
-
-        .field-toggle svg {
-            width: 16px; height: 16px;
-            stroke: currentColor;
-            fill: none;
-            stroke-width: 1.8;
-        }
-
-        /* Opciones del form */
-        .form-options {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin: 6px 0 26px;
-        }
-
-        .remember-label {
-            display: flex;
-            align-items: center;
-            gap: 9px;
-            font-size: 13px;
-            color: var(--text-2);
-            cursor: pointer;
-            user-select: none;
-        }
-
-        .remember-label input[type="checkbox"] { display: none; }
-
-        .custom-cb {
-            width: 17px; height: 17px;
-            border: 1px solid var(--border-hover);
-            border-radius: 4px;
-            background: var(--surface);
-            display: flex; align-items: center; justify-content: center;
-            transition: background 0.15s, border-color 0.15s;
-            flex-shrink: 0;
-        }
-
-        .remember-label input:checked ~ .custom-cb {
-            background: var(--accent);
-            border-color: var(--accent);
-        }
-
-        .custom-cb svg {
-            width: 10px; height: 10px;
-            stroke: white; fill: none;
-            stroke-width: 2.5;
-            opacity: 0;
-            transition: opacity 0.15s;
-        }
-
-        .remember-label input:checked ~ .custom-cb svg { opacity: 1; }
-
-        .forgot-link {
-            font-size: 13px;
-            color: var(--accent);
-            text-decoration: none;
-            transition: opacity 0.15s;
-        }
-
-        .forgot-link:hover { opacity: 0.7; }
 
         /* Botón submit */
         .btn-submit {
@@ -422,6 +321,7 @@
             align-items: center;
             justify-content: center;
             gap: 9px;
+            margin-top: 24px;
         }
 
         .btn-submit:hover  { background: var(--accent-dark); }
@@ -452,15 +352,15 @@
 
         /* Nota pie */
         .footer-note {
-            font-size: 11px;
+            font-size: 13px;
             color: var(--text-3);
             text-align: center;
             margin-top: 24px;
             line-height: 1.7;
         }
 
-        .footer-note a { color: var(--text-2); text-decoration: none; }
-        .footer-note a:hover { color: var(--text-1); }
+        .footer-note a { color: var(--accent); text-decoration: none; font-weight: 500; }
+        .footer-note a:hover { opacity: 0.8; }
 
         /* Animación de entrada */
         @keyframes fadeUp {
@@ -475,7 +375,6 @@
         .right-panel > *:nth-child(2) { animation-delay: 0.1s;  }
         .right-panel > *:nth-child(3) { animation-delay: 0.15s; }
         .right-panel > *:nth-child(4) { animation-delay: 0.2s;  }
-        .right-panel > *:nth-child(5) { animation-delay: 0.25s; }
 
         /* ─── RESPONSIVE ─────────────────────────────────────────── */
         @media (max-width: 860px) {
@@ -498,7 +397,6 @@
     <div class="left-panel" aria-hidden="true">
         <div class="brand">
             <div class="brand-icon">
-                <!-- Ícono de caja/pedidos -->
                 <svg viewBox="0 0 24 24">
                     <path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/>
                     <path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/>
@@ -513,11 +411,10 @@
         </div>
 
         <div class="hero-text">
-            <h1>Pedidos bajo<br><em>control total.</em></h1>
+            <h1>Crea tu<br><em>cuenta.</em></h1>
             <p>
-                Reemplaza Excel, papel y Word por un sistema
-                centralizado. Clasifica tallas, géneros y tipos
-                de prenda de forma automática.
+                Únete a la plataforma centralizada para la 
+                gestión ágil y control de todas tus órdenes.
             </p>
         </div>
 
@@ -527,12 +424,8 @@
                 <div class="stat-label">Digital</div>
             </div>
             <div class="stat">
-                <div class="stat-value">4×</div>
-                <div class="stat-label">Más rápido</div>
-            </div>
-            <div class="stat">
-                <div class="stat-value">0</div>
-                <div class="stat-label">Errores manuales</div>
+                <div class="stat-value">Eficiente</div>
+                <div class="stat-label">Gestión total</div>
             </div>
         </div>
     </div>
@@ -543,39 +436,35 @@
     ══════════════════════════════════════════════ -->
     <div class="right-panel">
 
-        <!-- Badge estado del sistema -->
-        <div class="status-badge">
-            <span class="status-dot"></span>
-            Sistema activo
-        </div>
-
         <!-- Encabezado -->
         <div class="form-header">
-            <h2>Bienvenido de vuelta</h2>
-            <p>Ingresa tus credenciales para continuar</p>
+            <h2>Registro de Usuario</h2>
+            <p>Por favor, completa los datos para crear tu cuenta</p>
         </div>
 
         <!-- ── Alertas Django ──────────────────────────── -->
         {% if form.errors %}
         <div class="alert-django" role="alert">
             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12" stroke="none"/><circle cx="12" cy="8"  r="0.5" fill="#f87171"/><line x1="12" y1="11" x2="12" y2="16" stroke="#f87171" stroke-width="2"/></svg>
-            <span>Usuario o contraseña incorrectos. Por favor, verifica tus datos.</span>
+            <div>
+                Por favor, corrige los siguientes errores:
+                <ul>
+                    {% for field in form %}
+                        {% for error in field.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                    {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
         </div>
         {% endif %}
 
-        {% if next %}
-            {% if user.is_authenticated %}
-            <div class="alert-django alert-warning" role="alert">
-                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12" stroke="none"/><circle cx="12" cy="8"  r="0.5" fill="#fbbf24"/><line x1="12" y1="11" x2="12" y2="16" stroke="#fbbf24" stroke-width="2"/></svg>
-                <span>Tu cuenta no tiene permisos para acceder a esa sección.</span>
-            </div>
-            {% endif %}
-        {% endif %}
-
         <!-- ── Formulario ──────────────────────────────── -->
-        <form id="loginForm" method="post" action="{% url 'core:login' %}" novalidate>
+        <form id="registerForm" method="post" action="{% url 'core:register' %}" novalidate>
             {% csrf_token %}
-            <input type="hidden" name="next" value="{{ next }}">
 
             <!-- Campo: usuario -->
             <div class="field-group {% if form.username.errors %}has-error{% endif %}">
@@ -592,7 +481,7 @@
                         id="id_username"
                         name="username"
                         class="field-input"
-                        placeholder="tu.usuario"
+                        placeholder="Elige un nombre de usuario"
                         value="{{ form.username.value|default:'' }}"
                         autocomplete="username"
                         autocapitalize="none"
@@ -602,11 +491,12 @@
                         required
                     >
                 </div>
+                <span class="help-text">Puedes usar letras, números y los caracteres @/./+/-/_</span>
             </div>
 
-            <!-- Campo: contraseña -->
+            <!-- Campo: contraseña 1 -->
             <div class="field-group {% if form.password.errors %}has-error{% endif %}">
-                <label class="field-label" for="id_password">Contraseña</label>
+                <label class="field-label" for="id_password1">Contraseña</label>
                 <div class="field-wrap">
                     <span class="field-icon">
                         <svg viewBox="0 0 24 24">
@@ -616,50 +506,41 @@
                     </span>
                     <input
                         type="password"
-                        id="id_password"
-                        name="password"
+                        id="id_password1"
+                        name="password1"
                         class="field-input"
-                        placeholder="••••••••"
-                        autocomplete="current-password"
+                        placeholder="Mínimo 8 caracteres"
+                        autocomplete="new-password"
                         required
                     >
-                    <button
-                        type="button"
-                        class="field-toggle"
-                        id="togglePwd"
-                        aria-label="Mostrar contraseña"
-                        aria-pressed="false"
-                    >
-                        <!-- Ojo abierto -->
-                        <svg id="eyeOpen" viewBox="0 0 24 24">
-                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                            <circle cx="12" cy="12" r="3"/>
-                        </svg>
-                        <!-- Ojo cerrado (oculto por defecto) -->
-                        <svg id="eyeClosed" viewBox="0 0 24 24" style="display:none">
-                            <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/>
-                            <line x1="1" y1="1" x2="23" y2="23"/>
-                        </svg>
-                    </button>
                 </div>
             </div>
 
-            <!-- Recordar + ¿olvidaste? -->
-            <div class="form-options">
-                <label class="remember-label">
-                    <input type="checkbox" name="remember_me" id="rememberMe">
-                    <span class="custom-cb" aria-hidden="true">
-                        <svg viewBox="0 0 12 12"><polyline points="2 6 5 9 10 3"/></svg>
+            <!-- Campo: contraseña 2 -->
+            <div class="field-group {% if form.password.errors %}has-error{% endif %}">
+                <label class="field-label" for="id_password2">Confirmar contraseña</label>
+                <div class="field-wrap">
+                    <span class="field-icon">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M20 6L9 17l-5-5"/>
+                        </svg>
                     </span>
-                    Recordar sesión
-                </label>
-                <a href="{% url 'password_reset' %}" class="forgot-link">¿Olvidaste tu contraseña?</a>
+                    <input
+                        type="password"
+                        id="id_password2"
+                        name="password2"
+                        class="field-input"
+                        placeholder="Repite tu contraseña"
+                        autocomplete="new-password"
+                        required
+                    >
+                </div>
             </div>
 
             <!-- Botón submit -->
             <button type="submit" class="btn-submit" id="submitBtn">
                 <span class="spinner" aria-hidden="true"></span>
-                <span class="btn-label">Iniciar sesión</span>
+                <span class="btn-label">Crear cuenta</span>
                 <span class="btn-arrow" aria-hidden="true">
                     <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                 </span>
@@ -668,58 +549,27 @@
 
         <!-- Nota de pie -->
         <p class="footer-note">
-            ¿No tienes cuenta? <a href="{% url 'core:register' %}">Regístrate aquí</a><br><br>
-            Acceso restringido al personal autorizado.<br>
-            ¿Problemas para ingresar?
-            <a href="mailto:soporte@empresa.com">Contacta al administrador</a>
+            ¿Ya tienes una cuenta? <a href="{% url 'core:login' %}">Inicia sesión</a>
         </p>
 
     </div><!-- /right-panel -->
 </main>
 
-<!-- ══════════════════════════════════════════
-     JAVASCRIPT — Toggle contraseña + spinner
-     (sin dependencias externas)
-══════════════════════════════════════════════ -->
 <script>
 (function () {
     'use strict';
-
-    /* ── Toggle mostrar/ocultar contraseña ── */
-    var toggleBtn = document.getElementById('togglePwd');
-    var pwdInput  = document.getElementById('id_password');
-    var eyeOpen   = document.getElementById('eyeOpen');
-    var eyeClosed = document.getElementById('eyeClosed');
-
-    if (toggleBtn && pwdInput) {
-        toggleBtn.addEventListener('click', function () {
-            var isPassword = pwdInput.type === 'password';
-            pwdInput.type  = isPassword ? 'text' : 'password';
-
-            eyeOpen.style.display   = isPassword ? 'none'  : 'block';
-            eyeClosed.style.display = isPassword ? 'block' : 'none';
-
-            toggleBtn.setAttribute('aria-pressed', String(isPassword));
-            toggleBtn.setAttribute('aria-label',
-                isPassword ? 'Ocultar contraseña' : 'Mostrar contraseña');
-
-            /* Devolver foco al campo para UX de teclado */
-            pwdInput.focus();
-        });
-    }
-
     /* ── Spinner al enviar el formulario ── */
-    var loginForm = document.getElementById('loginForm');
+    var registerForm = document.getElementById('registerForm');
     var submitBtn = document.getElementById('submitBtn');
 
-    if (loginForm && submitBtn) {
-        loginForm.addEventListener('submit', function () {
-            /* Solo activar spinner si el form es válido */
+    if (registerForm && submitBtn) {
+        registerForm.addEventListener('submit', function () {
             var username = document.getElementById('id_username');
-            var password = document.getElementById('id_password');
+            var pass1 = document.getElementById('id_password1');
+            var pass2 = document.getElementById('id_password2');
 
             if (username && username.value.trim() &&
-                password && password.value) {
+                pass1 && pass1.value && pass2 && pass2.value) {
                 submitBtn.classList.add('loading');
                 submitBtn.setAttribute('aria-busy', 'true');
             }
@@ -727,7 +577,7 @@
     }
 
     /* ── Limpiar clase error al escribir ── */
-    ['id_username', 'id_password'].forEach(function (id) {
+    ['id_username', 'id_password1', 'id_password2'].forEach(function (id) {
         var el = document.getElementById(id);
         if (el) {
             el.addEventListener('input', function () {
@@ -736,7 +586,6 @@
             });
         }
     });
-
 })();
 </script>
 </body>
