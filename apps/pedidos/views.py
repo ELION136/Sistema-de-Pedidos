@@ -220,21 +220,42 @@ def importar_excel(request, pk):
     pedido = get_object_or_404(Pedido, pk=pk)
     preview_data = None
     errores = []
-    
+    importacion = None
+
     if request.method == 'POST':
         form = ImportarExcelForm(request.POST, request.FILES)
         
         if 'preview' in request.POST:
-            # Modo vista previa
+            # Modo vista previa: validar y guardar archivo temporalmente
             if form.is_valid():
                 archivo = request.FILES['archivo']
+                # Crear registro de importación asociado al pedido
+                importacion = ImportacionExcel.objects.create(
+                    archivo=archivo,
+                    pedido=pedido,          # <-- CRUCIAL: asignar el pedido
+                    estado='pendiente',
+                    filas_procesadas=0,
+                    filas_con_error=0
+                )
                 preview_data, errores = procesar_excel_preview(archivo)
+                # Si deseas guardar preview_data en el objeto (opcional)
+                # importacion.datos_preview = preview_data
+                # importacion.save()
+            else:
+                errores.append("Por favor, seleccione un archivo válido.")
         
         elif 'confirmar' in request.POST:
-            # Confirmar importación
             importacion_id = request.POST.get('importacion_id')
+            if not importacion_id:
+                messages.error(request, 'No se encontró la importación temporal.')
+                return redirect('pedidos:importar_excel', pk=pedido.pk)
+            
             try:
-                importacion = ImportacionExcel.objects.get(pk=importacion_id)
+                importacion = ImportacionExcel.objects.get(pk=importacion_id, pedido=pedido)
+                if importacion.estado != 'pendiente':
+                    messages.error(request, 'Esta importación ya fue procesada.')
+                    return redirect('pedidos:importar_excel', pk=pedido.pk)
+                
                 filas_procesadas, errores = procesar_importacion_confirmada(importacion, pedido)
                 
                 if errores:
@@ -245,7 +266,8 @@ def importar_excel(request, pk):
                 return redirect('pedidos:detalle', pk=pedido.pk)
             
             except ImportacionExcel.DoesNotExist:
-                messages.error(request, 'Error al procesar la importación.')
+                messages.error(request, 'La importación temporal no existe o no pertenece a este pedido.')
+                return redirect('pedidos:importar_excel', pk=pedido.pk)
     
     else:
         form = ImportarExcelForm()
@@ -255,10 +277,11 @@ def importar_excel(request, pk):
         'pedido': pedido,
         'preview_data': preview_data,
         'errores': errores,
+        'importacion_id': importacion.id if importacion else None,
     }
     return render(request, 'pedidos/importar_excel.html', context)
 
-
+    
 def procesar_excel_preview(archivo):
     """
     Procesa el archivo Excel y retorna datos para vista previa.
@@ -270,21 +293,23 @@ def procesar_excel_preview(archivo):
     try:
         df = pd.read_excel(archivo)
         
-        # Validar columnas mínimas
-        columnas_requeridas = ['tipo_prenda', 'genero', 'talla', 'cantidad']
-        columnas_archivo = [c.lower().strip().replace(' ', '_') for c in df.columns]
-        
-        # Mapeo flexible de nombres de columnas
+        # Mapeo flexible de nombres de columnas (más completo)
         mapeo_columnas = {
+            # Tipo de prenda
             'prenda': 'tipo_prenda',
             'tipo': 'tipo_prenda',
             'tipo_prenda': 'tipo_prenda',
+            'tipo_de_prenda': 'tipo_prenda',   # <-- NUEVO
+            'tipo prenda': 'tipo_prenda',      # <-- NUEVO
+            # Género
             'genero': 'genero',
             'género': 'genero',
             'sexo': 'genero',
+            # Talla
             'talla': 'talla',
             'tamaño': 'talla',
             'size': 'talla',
+            # Cantidad
             'cantidad': 'cantidad',
             'cant': 'cantidad',
             'qty': 'cantidad',
@@ -301,13 +326,13 @@ def procesar_excel_preview(archivo):
             errores.append('Se requieren al menos las columnas: Tipo de Prenda, Género, Talla, Cantidad')
             return None, errores
         
-        # Procesar filas
+        # Procesar filas (resto igual)
         for idx, row in df.iterrows():
             try:
-                tipo_prenda = str(row[columnas_mapeadas.get('tipo_prenda', 'tipo_prenda')]).strip()
-                genero = str(row[columnas_mapeadas.get('genero', 'genero')]).strip()
-                talla = str(row[columnas_mapeadas.get('talla', 'talla')]).strip()
-                cantidad = row[columnas_mapeadas.get('cantidad', 'cantidad')]
+                tipo_prenda = str(row[columnas_mapeadas.get('tipo_prenda')]).strip()
+                genero = str(row[columnas_mapeadas.get('genero')]).strip()
+                talla = str(row[columnas_mapeadas.get('talla')]).strip()
+                cantidad = row[columnas_mapeadas.get('cantidad')]
                 
                 # Validar tipo de prenda
                 tipos_validos = ['chamarra', 'buso', 'polera', 'short']
@@ -372,12 +397,13 @@ def procesar_importacion_confirmada(importacion, pedido):
     try:
         df = pd.read_excel(importacion.archivo)
         
-        # Mapeo de columnas (similar a procesar_excel_preview)
-        columnas_mapeadas = {}
+        # Mismo mapeo mejorado
         mapeo_columnas = {
             'prenda': 'tipo_prenda',
             'tipo': 'tipo_prenda',
             'tipo_prenda': 'tipo_prenda',
+            'tipo_de_prenda': 'tipo_prenda',
+            'tipo prenda': 'tipo_prenda',
             'genero': 'genero',
             'género': 'genero',
             'sexo': 'genero',
@@ -389,6 +415,7 @@ def procesar_importacion_confirmada(importacion, pedido):
             'qty': 'cantidad',
         }
         
+        columnas_mapeadas = {}
         for col in df.columns:
             col_norm = col.lower().strip().replace(' ', '_')
             if col_norm in mapeo_columnas:
@@ -396,10 +423,10 @@ def procesar_importacion_confirmada(importacion, pedido):
         
         for idx, row in df.iterrows():
             try:
-                tipo_prenda = str(row[columnas_mapeadas.get('tipo_prenda', 'tipo_prenda')]).strip().lower()
-                genero_raw = str(row[columnas_mapeadas.get('genero', 'genero')]).strip().lower()
-                talla = str(row[columnas_mapeadas.get('talla', 'talla')]).strip().upper()
-                cantidad = int(float(row[columnas_mapeadas.get('cantidad', 'cantidad')]))
+                tipo_prenda = str(row[columnas_mapeadas.get('tipo_prenda')]).strip().lower()
+                genero_raw = str(row[columnas_mapeadas.get('genero')]).strip().lower()
+                talla = str(row[columnas_mapeadas.get('talla')]).strip().upper()
+                cantidad = int(float(row[columnas_mapeadas.get('cantidad')]))
                 
                 # Normalizar género
                 if genero_raw in ['varón', 'varon']:
@@ -439,7 +466,6 @@ def procesar_importacion_confirmada(importacion, pedido):
         errores.append(str(e))
     
     return filas_procesadas, errores
-
 
 @login_required
 def resumen_pedido_produccion(request, pk):
