@@ -127,9 +127,9 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 # Login Configuration
 LOGIN_REDIRECT_URL = 'dashboard'
-LOGOUT_REDIRECT_URL = 'login'
-LOGIN_URL = 'login'
 LOGOUT_REDIRECT_URL = '/'
+LOGIN_URL = 'login'
+
 
 # Messages Configuration
 from django.contrib.messages import constants as messages

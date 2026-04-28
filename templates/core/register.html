@@ -549,7 +549,7 @@
 
         <!-- Nota de pie -->
         <p class="footer-note">
-            ¿Ya tienes una cuenta? <a href="{% url 'core:login' %}">Inicia sesión</a>
+            <a href="{% url 'login' %}?next={{ request.path }}">Inicia sesión</a>
         </p>
 
     </div><!-- /right-panel -->
