@@ -820,14 +820,15 @@
 <div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
 
 <!-- ════════════════════════════════════════
-     SIDEBAR
+     SIDEBAR CORREGIDO
 ════════════════════════════════════════ -->
 <aside class="sidebar" id="sidebar" role="navigation" aria-label="Menú lateral">
 
     <div class="sidebar-section">
         <p class="sidebar-label">Principal</p>
         <nav>
-            <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
+            <!-- Dashboard - Solo activo en la URL exacta del dashboard -->
+            <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.namespace == 'core' %}active{% endif %}"
                href="{% url 'core:dashboard' %}">
                 <span class="nav-icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
@@ -835,6 +836,7 @@
                 Dashboard
             </a>
 
+            <!-- Pedidos - Activo en cualquier subruta de pedidos -->
             <a class="nav-link {% if request.resolver_match.namespace == 'pedidos' %}active{% endif %}"
                href="{% url 'pedidos:lista' %}">
                 <span class="nav-icon" aria-hidden="true">
@@ -843,6 +845,7 @@
                 Pedidos
             </a>
 
+            <!-- Clientes - Activo en cualquier subruta de clientes -->
             <a class="nav-link {% if request.resolver_match.namespace == 'clientes' %}active{% endif %}"
                href="{% url 'clientes:lista' %}">
                 <span class="nav-icon" aria-hidden="true">
@@ -850,22 +853,36 @@
                 </span>
                 Clientes
             </a>
+        </nav>
+    </div>
 
-            <a class="nav-link {% if request.resolver_match.namespace == 'pedidos_personalizados' %}active{% endif %}"
+    <div class="sidebar-section">
+        <p class="sidebar-label">Pedidos Personalizados</p>
+        <nav>
+            <!-- Panel Personalizados - Solo activo en dashboard -->
+            <a class="nav-link {% if request.resolver_match.namespace == 'pedidos_personalizados' and request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
                href="{% url 'pedidos_personalizados:dashboard' %}">
                 <span class="nav-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24"><path d="M3 21V19a4 4 0 014-4h10a4 4 0 014 4v2"/><circle cx="12" cy="8" r="4"/></svg>
+                    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
                 </span>
-                Panel de control Personalizados
+                Panel de Control
             </a>
-            <a class="nav-link {% if request.resolver_match.namespace == 'pedidos_personalizados' %}active{% endif %}"
+
+            <!-- Lista Personalizados - Solo activo en lista -->
+            <a class="nav-link {% if request.resolver_match.namespace == 'pedidos_personalizados' and request.resolver_match.url_name == 'lista' %}active{% endif %}"
                href="{% url 'pedidos_personalizados:lista' %}">
                 <span class="nav-icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                 </span>
-                lista Personalizados
+                Lista de Pedidos
             </a>
+        </nav>
+    </div>
 
+    <div class="sidebar-section">
+        <p class="sidebar-label">Producción</p>
+        <nav>
+            <!-- Producción - Activo en cualquier subruta de producción -->
             <a class="nav-link {% if request.resolver_match.namespace == 'produccion' %}active{% endif %}"
                href="{% url 'produccion:dashboard' %}">
                 <span class="nav-icon" aria-hidden="true">
